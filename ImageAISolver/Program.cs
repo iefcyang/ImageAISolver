@@ -18,5 +18,11 @@ namespace ImageAISolver
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
         }
+ 
+        static void f()
+        {
+
+        }
+
     }
 }

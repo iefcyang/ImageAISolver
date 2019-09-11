@@ -28,21 +28,77 @@ namespace ImageAISolver
         }
         Bitmap origin;
         Bitmap grayImage;
+        byte[,] image;
         private void BtnGray_Click(object sender, EventArgs e)
         {
  
 
             grayImage = new Bitmap(origin.Width,origin.Height);
            // Graphics grayG = Graphics.FromImage(grayImage);
-            
+            image = new byte[origin.Height,origin.Width];
+
             for ( int r = 0; r < grayImage.Height; r++ )
                 for( int c = 0; c < grayImage.Width; c++ )
                 {
                     Color clr = origin.GetPixel(c, r);
                     int v = (clr.R + clr.G + clr.B) / 3;
+                    image[r,c] = (byte)v;
                     grayImage.SetPixel(c, r, Color.FromArgb( v,v,v ));
                 }
             pcbImage.Image = grayImage;
+
+             double low = 0.3 * 255, up = 0.7 * 255;
+            bool hit = false;
+            int start = 0, end = 0;
+            Graphics g = pcbImage.CreateGraphics();
+            List<int> lines = new List<int>();
+            float max = float.MinValue;
+            float min = float.MaxValue;
+            chart1.Series[0].Points.Clear();
+            chart1.Series[1].Points.Clear();
+            int last, current, delta = 0;
+            for ( int r = 0; r < grayImage.Height; r++ )
+            {
+                float total = 0;
+                last = image[r, 0];
+                total = image[r, 0];
+                delta = 0;
+                for (int c = 1; c < grayImage.Width; c++)
+                {
+                    delta += Math.Abs(image[r, c] - last);
+                    last = image[r, c];
+                    total += image[r, c];
+                }
+                total /= grayImage.Width;
+                chart1.Series[0].Points.AddY(total);
+                chart1.Series[1].Points.AddY(delta);
+
+                if (total > max) max = total;
+                if (total < min) min = total;
+                if (!hit)
+                {
+                    // get rising value
+                    if (low < total && total < up)
+                    {
+                        hit = true;
+                        start = r;
+                    }
+                }
+                else
+                {
+                    // get lower or upper value
+                    if( total < low || total > up )
+                    {
+                        hit = false;
+                        end = r;
+                        // draw a line at middle of start and end
+                        g.DrawLine(Pens.Gold, 0, start, grayImage.Width, start);
+                        g.DrawLine(Pens.Red, 0, start, grayImage.Width, ( start + end ) / 2 );
+                        g.DrawLine(Pens.Gold, 0, start, grayImage.Width, end);
+                        lines.Add((start + end) / 2);
+                    }
+                }
+            }
         }
 
         int hOff, hSize, hcount, offLimit;
