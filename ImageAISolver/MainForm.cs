@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace ImageAISolver
 {
@@ -99,6 +100,93 @@ namespace ImageAISolver
                     }
                 }
             }
+
+            //
+            DataPointCollection pts = chart1.Series[1].Points;
+            int offset = 0;
+            List<int> divisions = new List<int>();
+            int ss = -1, ee;
+            double smallest = double.MaxValue;
+            double bound = 20;
+            for (int i = pts.Count / 4; i < pts.Count * 3 / 4; i++)
+            {
+                if (pts[i].YValues[0] < smallest)
+                {
+                    smallest = pts[i].YValues[0];
+                }
+            }
+            double factor = 1.5;
+            bound = smallest *factor;
+            int center=0;
+            // 往右
+            for (int i = pts.Count / 2; i < pts.Count; i++)
+            {
+                if (pts[i].YValues[0] <= bound) continue;
+                else
+                {
+                    center = i+1;
+                    break;
+                }
+            }
+                // 往右
+                for ( int i =center; i < pts.Count; i++ )
+            {
+                // 
+                if( ss < 0 ) // find start of the smallest
+                {
+                    if(  pts[i].YValues[0] <= bound)
+                    {
+                        ss = i;
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else // find end of the smallest 往右若碰到 0 表示邊界到了
+                {
+                    if( bound < pts[i].YValues[0] || pts[i].YValues[0] == 0 )
+                    {
+                        ee = i;
+                        divisions.Add ( (ss + ee )  / 2 );
+                        if (divisions.Count > 1) offset = divisions[1] - divisions[0];
+                        ss = -1;
+
+                        if (pts[i].YValues[0] == 0) break;//提早結束
+                    }
+
+                }
+            }
+            ss = -1;
+            for (int i = center-1; i > 0; i--)
+            {
+                // 
+                if (ss < 0) // find start of the smallest
+                {
+                    if ( pts[i].YValues[0] <= bound)
+                    {
+                        ss = i;
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else // find end of the smallest
+                {
+                    if (bound < pts[i].YValues[0] || pts[i].YValues[0] == 0)
+                    {
+                        ee = i;
+                        divisions.Add((ss + ee) / 2);
+                        if (divisions.Count > 1) offset = divisions[1] - divisions[0];
+                        ss = -1;
+                    if (pts[i].YValues[0] == 0) break;//提早結束
+                    }
+                }
+            }
+            chart1.Series[2].Points.Clear();
+            foreach (int i in divisions)
+                chart1.Series[2].Points.AddXY(i, 0);
         }
 
         int hOff, hSize, hcount, offLimit;
