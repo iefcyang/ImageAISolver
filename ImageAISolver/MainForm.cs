@@ -16,6 +16,7 @@ namespace ImageAISolver
         public MainForm()
         {
             InitializeComponent();
+
         }
 
         private void BtnOpen_Click(object sender, EventArgs e)
@@ -32,77 +33,136 @@ namespace ImageAISolver
         byte[,] image;
         private void BtnGray_Click(object sender, EventArgs e)
         {
- 
 
-            grayImage = new Bitmap(origin.Width,origin.Height);
-           // Graphics grayG = Graphics.FromImage(grayImage);
-            image = new byte[origin.Height,origin.Width];
+            grayImage = new Bitmap(origin.Width, origin.Height);
+            // Graphics grayG = Graphics.FromImage(grayImage);
+            image = new byte[origin.Height, origin.Width];
 
-            for ( int r = 0; r < grayImage.Height; r++ )
-                for( int c = 0; c < grayImage.Width; c++ )
+            for (int r = 0; r < grayImage.Height; r++)
+                for (int c = 0; c < grayImage.Width; c++)
                 {
                     Color clr = origin.GetPixel(c, r);
                     int v = (clr.R + clr.G + clr.B) / 3;
-                    image[r,c] = (byte)v;
-                    grayImage.SetPixel(c, r, Color.FromArgb( v,v,v ));
+                    image[r, c] = (byte)v;
+                    grayImage.SetPixel(c, r, Color.FromArgb(v, v, v));
                 }
             pcbImage.Image = grayImage;
 
-             double low = 0.3 * 255, up = 0.7 * 255;
-            bool hit = false;
-            int start = 0, end = 0;
-            Graphics g = pcbImage.CreateGraphics();
-            List<int> lines = new List<int>();
-            float max = float.MinValue;
-            float min = float.MaxValue;
-            chart1.Series[0].Points.Clear();
-            chart1.Series[1].Points.Clear();
-            int last, current, delta = 0;
-            for ( int r = 0; r < grayImage.Height; r++ )
-            {
-                float total = 0;
-                last = image[r, 0];
-                total = image[r, 0];
-                delta = 0;
-                for (int c = 1; c < grayImage.Width; c++)
-                {
-                    delta += Math.Abs(image[r, c] - last);
-                    last = image[r, c];
-                    total += image[r, c];
-                }
-                total /= grayImage.Width;
-                chart1.Series[0].Points.AddY(total);
-                chart1.Series[1].Points.AddY(delta);
+            //  double low = 0.3 * 255, up = 0.7 * 255;
+            //bool hit = false;
+            //int start = 0, end = 0;
+            //   Graphics g = pcbImage.CreateGraphics();
+            //List<int> lines = new List<int>();
+            //float max = float.MinValue;
+            //float min = float.MaxValue;
+            GetGridInfo(true);
+            GetGridInfo(false);
 
-                if (total > max) max = total;
-                if (total < min) min = total;
-                if (!hit)
-                {
-                    // get rising value
-                    if (low < total && total < up)
-                    {
-                        hit = true;
-                        start = r;
-                    }
-                }
-                else
-                {
-                    // get lower or upper value
-                    if( total < low || total > up )
-                    {
-                        hit = false;
-                        end = r;
-                        // draw a line at middle of start and end
-                        g.DrawLine(Pens.Gold, 0, start, grayImage.Width, start);
-                        g.DrawLine(Pens.Red, 0, start, grayImage.Width, ( start + end ) / 2 );
-                        g.DrawLine(Pens.Gold, 0, start, grayImage.Width, end);
-                        lines.Add((start + end) / 2);
-                    }
-                }
+            // 繪製網格
+            Graphics g = Graphics.FromImage(grayImage);
+            int y = verticalOffset;
+            Point ps = Point.Empty;
+            ps.X = horizontalOffset;
+            Point pe = Point.Empty;
+            pe.X = horizontalOffset + horizontalCount * horizontalInterval;
+            ps.Y = pe.Y = y;
+            g.DrawLine(Pens.Red, ps, pe);
+            for( int i = 0; i < verticalCount; i++ )
+            {
+                y += verticalInterval;
+                ps.Y = pe.Y = y;
+                g.DrawLine(Pens.Red, ps, pe);
             }
 
-            //
-            DataPointCollection pts = chart1.Series[1].Points;
+            ps.Y = verticalOffset;
+            pe.Y = verticalOffset + verticalInterval * verticalCount;
+            int x = horizontalOffset;
+            ps.X = pe.X = x;
+            g.DrawLine(Pens.Red, ps, pe);
+            for ( int i = 0; i < horizontalCount; i++ )
+            {
+                x += horizontalInterval;
+                ps.X = pe.X = x;
+                g.DrawLine(Pens.Red, ps, pe);
+
+            }
+        }
+
+        void GetGridInfo(bool isHeight)
+        { 
+            int seriesOffset = isHeight ? 0 : 3;
+             
+            chart1.Series[0+seriesOffset].Points.Clear();
+            chart1.Series[1+seriesOffset].Points.Clear();
+            int last, delta = 0;
+            if (isHeight)
+            {
+                for (int r = 0; r < grayImage.Height; r++)
+                {
+                    float total = 0;
+                    last = image[r, 0];
+                    total = image[r, 0];
+                    delta = 0;
+                    for (int c = 1; c < grayImage.Width; c++)
+                    {
+                        delta += Math.Abs(image[r, c] - last);
+                        last = image[r, c];
+                        total += image[r, c];
+                    }
+                    total /= grayImage.Width;
+                    chart1.Series[0+seriesOffset].Points.AddY(total);
+                    chart1.Series[1+seriesOffset].Points.AddY(delta);
+
+                    //if (total > max) max = total;
+                    //if (total < min) min = total;
+                    //if (!hit)
+                    //{
+                    //    // get rising value
+                    //    if (low < total && total < up)
+                    //    {
+                    //        hit = true;
+                    //        start = r;
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    // get lower or upper value
+                    //    if( total < low || total > up )
+                    //    {
+                    //        hit = false;
+                    //        end = r;
+                    //        // draw a line at middle of start and end
+                    //        g.DrawLine(Pens.Gold, 0, start, grayImage.Width, start);
+                    //        g.DrawLine(Pens.Red, 0, start, grayImage.Width, ( start + end ) / 2 );
+                    //        g.DrawLine(Pens.Gold, 0, start, grayImage.Width, end);
+                    //        lines.Add((start + end) / 2);
+                    //    }
+                    //}
+                }
+            }
+            else
+            {
+
+                for (int c = 0; c < grayImage.Width; c++)
+                {
+                    float total = 0;
+                    last = image[ 0, c];
+                    total = image[ 0, c];
+                    delta = 0;
+                    for (int r = 1; r < grayImage.Height; r++)
+                    {
+                        delta += Math.Abs(image[r,c ] - last);
+                        last = image[ r, c];
+                        total += image[ r, c];
+                    }
+                    total /= grayImage.Height;
+                    chart1.Series[0+seriesOffset].Points.AddY(total);
+                    chart1.Series[1+seriesOffset].Points.AddY(delta);
+                }
+             }
+
+                //
+                DataPointCollection pts = chart1.Series[1+seriesOffset].Points;
             int offset = 0;
             List<int> divisions = new List<int>();
             int ss = -1, ee;
@@ -184,10 +244,106 @@ namespace ImageAISolver
                     }
                 }
             }
-            chart1.Series[2].Points.Clear();
+
+
+            chart1.Series[2+seriesOffset].Points.Clear();
             foreach (int i in divisions)
-                chart1.Series[2].Points.AddXY(i, 0);
+                chart1.Series[2+seriesOffset].Points.AddXY(i, 0);
+
+            // 整理點資料調整出正確分隔點
+            divisions.Sort();
+            // 找出間隔 及數量
+            List<int> intervals = new List<int>();
+            List<float> sections = new List<float>();
+            List<int> counts = new List<int>();
+            int l = divisions[1];
+            // 忽略前後兩個 bounds
+            for( int i = 2; i < divisions.Count-1;i++)
+            {
+                intervals.Add(divisions[i] - l);
+                l = divisions[i];
+            }
+            // 排除頭尾兩個，保留中間的 intervals
+            intervals.Sort();
+            sections.Add(intervals[0]);
+            l = intervals[0];
+            float num = 8;
+            float ttt = l / num; // tolerance
+            counts.Add(1);
+            int id = 0;
+            for( int i = 1; i < intervals.Count-1; i++ )
+            {
+                // 接續的是否差異太大
+                if( Math.Abs( intervals[i] -l ) < ttt )
+                {
+                    // 歸屬在此interval，更新成平均值
+                    sections[id] = (counts[id] * sections[id] + intervals[i]) / (counts[id] + 1);
+                    counts[id]++;
+                }
+                else
+                {
+                    // 詫異大，新增一個
+                    sections.Add(intervals[i]);
+                    counts.Add(1);
+                    // 變更餘裕
+                    ttt = intervals[i] / num;
+                    id++;
+                }
+                l = intervals[i];
+            }
+            while( sections.Count > 2 )
+            {
+                // 刪掉個數最少者
+                int small = counts[0];
+                int idx = 0;
+                for(int i = 1; i < counts.Count;i++)
+                    if( counts[i] < small )
+                    {
+                        idx = i;
+                        small = counts[i];
+                    }
+                sections.RemoveAt(idx);
+                counts.RemoveAt(idx);
+            }
+            // 如果 section 只有一個
+            int trueSection;
+            if (sections.Count == 1) trueSection = (int)Math.Round( sections[0] );
+            else
+            {
+                if (sections[1] > 5 * sections[0]) trueSection = (int)sections[0];
+                else trueSection = (int)Math.Round( sections[0]  + sections[1] );
+            }
+            int ssss = sections.Count == 2 ?  (int)Math.Round( (divisions[2]+divisions[3])/2.0 - trueSection ): divisions[1]-trueSection;
+
+            if (isHeight)
+            {
+                verticalOffset = ssss;
+                verticalInterval = trueSection;
+                verticalCount = -1;
+            }
+            else
+            {
+                horizontalOffset = ssss;
+                horizontalInterval = trueSection;
+                horizontalCount = -1;
+            }
+
+            for (int i = ssss; i < (isHeight ? origin.Height : origin.Width); )
+            {
+                DataPoint dp = new DataPoint();
+                dp.XValue = i;
+                dp.YValues = new double[] { 25 };
+                dp.Color = Color.Purple;
+                dp.MarkerStyle = MarkerStyle.Triangle;
+                chart1.Series[2+seriesOffset].Points.Add(dp);
+                i = i + trueSection;
+                if (isHeight) verticalCount++;
+                else horizontalCount++;
+            }
         }
+
+        int horizontalOffset, horizontalInterval, horizontalCount;
+        int verticalOffset, verticalInterval, verticalCount;
 
         int hOff, hSize, hcount, offLimit;
         byte tol = 10;
