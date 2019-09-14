@@ -53,6 +53,7 @@
             this.dlgOpen = new System.Windows.Forms.OpenFileDialog();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.labMessage = new System.Windows.Forms.ToolStripStatusLabel();
+            this.ckbBinary = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -77,6 +78,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.ckbBinary);
             this.splitContainer1.Panel2.Controls.Add(this.btnColLine);
             this.splitContainer1.Panel2.Controls.Add(this.btnBinary);
             this.splitContainer1.Panel2.Controls.Add(this.btnGray);
@@ -119,10 +121,10 @@
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.chart1);
-            this.tabPage2.Location = new System.Drawing.Point(4, 25);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(986, 685);
+            this.tabPage2.Size = new System.Drawing.Size(986, 688);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Horizontal Line Feature";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -185,7 +187,7 @@
             this.chart1.Series.Add(series4);
             this.chart1.Series.Add(series5);
             this.chart1.Series.Add(series6);
-            this.chart1.Size = new System.Drawing.Size(980, 679);
+            this.chart1.Size = new System.Drawing.Size(980, 682);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
             title1.BackColor = System.Drawing.Color.White;
@@ -203,7 +205,7 @@
             // 
             // btnColLine
             // 
-            this.btnColLine.Location = new System.Drawing.Point(12, 147);
+            this.btnColLine.Location = new System.Drawing.Point(12, 232);
             this.btnColLine.Name = "btnColLine";
             this.btnColLine.Size = new System.Drawing.Size(125, 49);
             this.btnColLine.TabIndex = 3;
@@ -213,7 +215,7 @@
             // 
             // btnBinary
             // 
-            this.btnBinary.Location = new System.Drawing.Point(12, 94);
+            this.btnBinary.Location = new System.Drawing.Point(12, 179);
             this.btnBinary.Name = "btnBinary";
             this.btnBinary.Size = new System.Drawing.Size(125, 35);
             this.btnBinary.TabIndex = 2;
@@ -226,7 +228,7 @@
             this.btnGray.Name = "btnGray";
             this.btnGray.Size = new System.Drawing.Size(125, 35);
             this.btnGray.TabIndex = 1;
-            this.btnGray.Text = "Gray Image";
+            this.btnGray.Text = "Gray B/W Image";
             this.btnGray.UseVisualStyleBackColor = true;
             this.btnGray.Click += new System.EventHandler(this.BtnGray_Click);
             // 
@@ -261,6 +263,18 @@
             this.labMessage.Size = new System.Drawing.Size(1171, 17);
             this.labMessage.Spring = true;
             // 
+            // ckbBinary
+            // 
+            this.ckbBinary.AutoSize = true;
+            this.ckbBinary.Checked = true;
+            this.ckbBinary.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ckbBinary.Location = new System.Drawing.Point(12, 105);
+            this.ckbBinary.Name = "ckbBinary";
+            this.ckbBinary.Size = new System.Drawing.Size(94, 20);
+            this.ckbBinary.TabIndex = 4;
+            this.ckbBinary.Text = "Black/White";
+            this.ckbBinary.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -275,6 +289,7 @@
             this.Text = "Character Recognizer";
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
+            this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
@@ -304,6 +319,7 @@
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
+        private System.Windows.Forms.CheckBox ckbBinary;
     }
 }
 

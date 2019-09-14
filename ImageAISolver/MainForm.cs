@@ -43,6 +43,11 @@ namespace ImageAISolver
                 {
                     Color clr = origin.GetPixel(c, r);
                     int v = (clr.R + clr.G + clr.B) / 3;
+                    if( ckbBinary.Checked )
+                    {
+                        if (v <= 127) v = 0;
+                        else v = 255;
+                    }
                     image[r, c] = (byte)v;
                     grayImage.SetPixel(c, r, Color.FromArgb(v, v, v));
                 }
@@ -175,7 +180,7 @@ namespace ImageAISolver
                     smallest = pts[i].YValues[0];
                 }
             }
-            double factor = 1.5;
+            double factor = 2.5; // 5; // 4; // 1.5;
             bound = smallest *factor;
             int center=0;
             // 往右
@@ -250,8 +255,39 @@ namespace ImageAISolver
             foreach (int i in divisions)
                 chart1.Series[2+seriesOffset].Points.AddXY(i, 0);
 
+           // return;
+
             // 整理點資料調整出正確分隔點
             divisions.Sort();
+            // 調整 divisions 
+            // 取得間隔平均，若間隔小於平均的1/5視為需刪除調整的division
+            float avg = divisions[1] - divisions[0];
+            for (int i = 2; i < divisions.Count; i++)
+                avg += divisions[i] - divisions[i - 1];
+            avg /= divisions.Count - 1;
+            avg /= 5;
+            int ccc = 0;
+            for( int i = divisions.Count -1; i > 0; i--)
+            {
+                if( ( divisions[i]-divisions[i-1] ) < avg )
+                {
+                    int ii = i-1;
+                    ccc = 1;
+                    while(  ii-1 >= 0 && divisions[ii] - divisions[ii-1] < avg )
+                    {
+                        ccc++;
+                        ii = ii - 1;
+                    }
+                    float newloc = divisions[i];
+                    for (int j = 0; j < ccc; j++)
+                        newloc+= divisions[i - j - 1];
+                    divisions[i] = (int)Math.Round( newloc / (ccc + 1));
+                    for (int j = 0; j < ccc; j++)
+                        divisions.RemoveAt(i - j - 1);
+                    i = i - ccc;
+                }
+            }
+
             // 找出間隔 及數量
             List<int> intervals = new List<int>();
             List<float> sections = new List<float>();
