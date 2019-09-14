@@ -26,6 +26,7 @@ namespace ImageAISolver
                 origin = new Bitmap(dlgOpen.FileName);
                 pcbImage.Image = origin;
                 pcbImage.SizeMode = PictureBoxSizeMode.StretchImage;
+                isFramed = true; // 假設有框
             }
         }
         Bitmap origin;
@@ -93,6 +94,9 @@ namespace ImageAISolver
             }
         }
 
+        int leftBound, rightBound, topBound, bottonBound;
+        bool isFramed; // 是否有框
+
         void GetGridInfo(bool isHeight)
         { 
             int seriesOffset = isHeight ? 0 : 3;
@@ -100,6 +104,8 @@ namespace ImageAISolver
             chart1.Series[0+seriesOffset].Points.Clear();
             chart1.Series[1+seriesOffset].Points.Clear();
             int last, delta = 0;
+            float min = float.MaxValue;
+
             if (isHeight)
             {
                 for (int r = 0; r < grayImage.Height; r++)
@@ -115,8 +121,10 @@ namespace ImageAISolver
                         total += image[r, c];
                     }
                     total /= grayImage.Width;
-                    chart1.Series[0+seriesOffset].Points.AddY(total);
-                    chart1.Series[1+seriesOffset].Points.AddY(delta);
+                    if (total < min) min = total;
+
+                    chart1.Series[0+seriesOffset].Points.AddXY(r+1,total);
+                    chart1.Series[1+seriesOffset].Points.AddXY(r+1,delta);
 
                     //if (total > max) max = total;
                     //if (total < min) min = total;
@@ -161,8 +169,8 @@ namespace ImageAISolver
                         total += image[ r, c];
                     }
                     total /= grayImage.Height;
-                    chart1.Series[0+seriesOffset].Points.AddY(total);
-                    chart1.Series[1+seriesOffset].Points.AddY(delta);
+                    chart1.Series[0+seriesOffset].Points.AddXY(c+1,total);
+                    chart1.Series[1+seriesOffset].Points.AddXY(c+1,delta);
                 }
              }
 
@@ -172,12 +180,18 @@ namespace ImageAISolver
             List<int> divisions = new List<int>();
             int ss = -1, ee;
             double smallest = double.MaxValue;
+            double largest = double.MinValue;
+
             double bound = 20;
             for (int i = pts.Count / 4; i < pts.Count * 3 / 4; i++)
             {
                 if (pts[i].YValues[0] < smallest)
                 {
                     smallest = pts[i].YValues[0];
+                }
+                if (pts[i].YValues[0] > largest)
+                {
+                    largest = pts[i].YValues[0];
                 }
             }
             double factor = 2.5; // 5; // 4; // 1.5;
@@ -351,17 +365,114 @@ namespace ImageAISolver
             }
             int ssss = sections.Count == 2 ?  (int)Math.Round( (divisions[2]+divisions[3])/2.0 - trueSection ): divisions[1]-trueSection;
 
+            double thresh = largest / 100;
             if (isHeight)
             {
-                verticalOffset = ssss;
                 verticalInterval = trueSection;
                 verticalCount = -1;
+                // ssss 之前是否有 索引
+
+                // 上有索引，找出索引 
+                int ps = -1;
+              // double largest = chart1.Series[1 + seriesOffset].Points[0].YValues[0];
+                for (int x = 1; x < ssss; x++)
+                {
+                    if (ps < 0)
+                    {
+                        if ( chart1.Series[1 + seriesOffset].Points[x-1].YValues[0] < thresh &&
+                            chart1.Series[1 + seriesOffset].Points[x].YValues[0] - chart1.Series[1 + seriesOffset].Points[x - 1].YValues[0] > thresh)
+                        {
+                            ps = x;
+                        }
+                    }
+                    else
+                    {
+                        if ( chart1.Series[1+seriesOffset].Points[x].YValues[0] < thresh )// && 
+                          //  chart1.Series[1 + seriesOffset].Points[x-1].YValues[0] - chart1.Series[1 + seriesOffset].Points[x].YValues[0] > thresh)
+                        {
+                            verticalHeader = (x + ps) / 2;
+                            break;
+                        }
+                    }
+                }
+
+
+                if ( ps >= 0 )
+                {
+                    verticalOffset = ssss;
+                }
+                else
+                {
+                    // 去除
+                    verticalOffset = ssss +  verticalInterval;
+                    verticalHeader = verticalOffset - verticalInterval / 2;
+                }
+
+                // Add header points
+                DataPoint dp = new DataPoint();
+                dp.XValue = verticalHeader;
+                dp.YValues = new double[] { 25 };
+                dp.Color = Color.Red;
+                dp.MarkerStyle = MarkerStyle.Circle;
+                chart1.Series[2 + seriesOffset].Points.Add(dp);
+
+                dp = new DataPoint();
+                dp.XValue = ps;
+                dp.YValues = new double[] { 25 };
+                dp.Color = Color.Black;
+                dp.MarkerStyle = MarkerStyle.Circle;
+                chart1.Series[2 + seriesOffset].Points.Add(dp);
             }
             else
             {
-                horizontalOffset = ssss;
                 horizontalInterval = trueSection;
                 horizontalCount = -1;
+                int ps = -1;
+                for (int x = 1; x < ssss; x++)
+                {
+                    if (ps < 0)
+                    {
+                        if ( chart1.Series[1 + seriesOffset].Points[x-1].YValues[0] < thresh &&
+                            chart1.Series[1 + seriesOffset].Points[x].YValues[0] - chart1.Series[1 + seriesOffset].Points[x - 1].YValues[0] > thresh  )
+                        {
+                            ps = x;
+                        }
+                    }
+                    else
+                    {
+                        if ( chart1.Series[1 + seriesOffset].Points[x].YValues[0] < thresh ) //&&
+                           // chart1.Series[1 + seriesOffset].Points[x-1].YValues[0] - chart1.Series[1 + seriesOffset].Points[x ].YValues[0] > thresh)
+                        {
+                            horizontalHeader = (x + ps) / 2;
+                            break;
+                        }
+                    }
+                }
+
+                if (ps >= 0)
+                {
+                    horizontalOffset = ssss;
+                }
+                else
+                {
+                    // 取除
+                    horizontalOffset = ssss + horizontalInterval;
+                    horizontalHeader = horizontalOffset - horizontalInterval / 2;
+                }
+                // Add header points
+                DataPoint dp = new DataPoint();
+                dp.XValue = horizontalHeader;
+                dp.YValues = new double[] { 25 };
+                dp.Color = Color.Red;
+                dp.MarkerStyle = MarkerStyle.Circle;
+                chart1.Series[2 + seriesOffset].Points.Add(dp);
+
+                dp = new DataPoint();
+                dp.XValue = ps;
+                dp.YValues = new double[] { 25 };
+                dp.Color = Color.Black;
+                dp.MarkerStyle = MarkerStyle.Circle;
+                chart1.Series[2 + seriesOffset].Points.Add(dp);
             }
 
             for (int i = ssss; i < (isHeight ? origin.Height : origin.Width); )
@@ -376,10 +487,16 @@ namespace ImageAISolver
                 if (isHeight) verticalCount++;
                 else horizontalCount++;
             }
+
+
+
+
+
         }
 
         int horizontalOffset, horizontalInterval, horizontalCount;
         int verticalOffset, verticalInterval, verticalCount;
+        int verticalHeader, horizontalHeader;
 
         int hOff, hSize, hcount, offLimit;
         byte tol = 10;
