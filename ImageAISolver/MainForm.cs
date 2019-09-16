@@ -127,8 +127,8 @@ namespace ImageAISolver
                     total /= grayImage.Width; // 此列圖素值平均
                     //if (total < min) min = total;
 
-                    chart1.Series[0+seriesOffset].Points.AddXY(r+1,total);
-                    chart1.Series[1+seriesOffset].Points.AddXY(r+1,delta);
+                    chart1.Series[0+seriesOffset].Points.AddXY(r,total);
+                    chart1.Series[1+seriesOffset].Points.AddXY(r,delta);
                 }
             }
             else
@@ -143,8 +143,8 @@ namespace ImageAISolver
                         total += dataImage[ r, c];
                     }
                     total /= grayImage.Height;
-                    chart1.Series[0+seriesOffset].Points.AddXY(c+1,total);
-                    chart1.Series[1+seriesOffset].Points.AddXY(c+1,delta);
+                    chart1.Series[0+seriesOffset].Points.AddXY(c,total);
+                    chart1.Series[1+seriesOffset].Points.AddXY(c,delta);
                 }
              }
 
@@ -369,6 +369,8 @@ namespace ImageAISolver
                     throw new Exception("Horizontal Error");
 
                 smallest = double.MaxValue;
+                largest = double.MinValue;
+
                 // update effect smallest 
                 // 檢視差異線1/4到3/4段內的最小值，確認分界線的數值，以便定義數值範圍
                 for (int i = pts.Count / 4; i < pts.Count * 3 / 4; i++)
@@ -378,15 +380,25 @@ namespace ImageAISolver
                     {
                         smallest = pts[i].YValues[0];
                     }
+                    if (pts[i].YValues[0] > largest)
+                    {
+                        largest = pts[i].YValues[0];
+                    }
                 }
             }
             else
             {
+                largest = double.MinValue;
+                smallest = double.MaxValue;
 
                 // update effect smallest 
                 // 檢視差異線1/4到3/4段內的最小值，確認分界線的數值，以便定義數值範圍
                 for (int i = pts.Count / 4; i < pts.Count * 3 / 4; i++)
                 {
+                    if (pts[i].YValues[0] > largest)
+                    {
+                        largest = pts[i].YValues[0];
+                    }
                     if (pts[i].YValues[0] < smallest)
                     {
                         smallest = pts[i].YValues[0];
@@ -397,14 +409,18 @@ namespace ImageAISolver
             double factor = 3;// 2.5; // 5; // 4; // 1.5; // 列的範圍固定，谷底較淺
             if (!alongHeight) factor = factor * 2;// 因行的字數變化大，谷底放寬
             valleyBound = smallest *factor;
+
             int alt = (int)( smallest + (largest - smallest) / 10 );
             if (valleyBound > alt)
                 valleyBound = alt;
 
+            valleyBound = (int)(smallest + (largest - smallest) /20);
+
             int centerStart = 0;
 
-            // 由中間或 voidE 往右找到不能是谷底的起始點           
-            for (int i = voidE == 0 ? pts.Count / 2 : voidE; i < pts.Count; i++)
+            // 由中間或 voidE 往右找到不能是谷底的起始點    
+            int searchStart = voidE == 0 ? pts.Count / 2 : voidE;
+            for (int i = searchStart; i < pts.Count; i++)
             {
                 if (pts[i].YValues[0] <= valleyBound) continue;
                 else
@@ -413,21 +429,39 @@ namespace ImageAISolver
                     break;
                 }
             }
+            searchStart = centerStart; // 設定左邊開始搜尋的起點，避免遺漏中間的谷地
 
             int cliffDown = -1;
             zeroBound = (int)( valleyBound / 10 );
+            zeroBound = (int)(smallest / 10);
             // 開始往右尋找分隔線的谷底分布
             for (int i = centerStart; i < pts.Count; i++)
             {
                 if (cliffDown < 0) // 尚未有懸崖下墜點，找尋中 find start of the smallest
                 {
-                    if (  pts[i].YValues[0] <= valleyBound) cliffDown = i; // 找到下墜點
+                    if (pts[i].YValues[0] <= valleyBound)
+                    {
+                        cliffDown = i; // 找到下墜點
+                        DataPoint dp = new DataPoint();
+                        dp.MarkerStyle = MarkerStyle.Cross;
+                        dp.Color = Color.Black;
+                        dp.XValue = i;
+                        dp.YValues = new double[] { valleyBound };
+                        chart1.Series[2 + seriesOffset].Points.Add(dp);
+                    }
                 }
                 else // 已通過下墜點，在谷底中，尋找攀升點中 find end of the smallest 往右若碰到 0 表示邊界到了
                 {
                     // 攀升點找到，或低迷到水平線永遠的谷底
                     if( pts[i].YValues[0] > valleyBound || pts[i].YValues[0] < zeroBound )
                     {
+                        DataPoint dp = new DataPoint();
+                        dp.MarkerStyle = MarkerStyle.Cross;
+                        dp.Color = Color.Black;
+                        dp.XValue = i;
+                        dp.YValues = new double[] { valleyBound };
+                        chart1.Series[2+ seriesOffset].Points.Add(dp);
+
                         // 設定分隔點是谷底的中間
                         divisors.Add ( (cliffDown + i )  / 2 );
                         //if (divisors.Count > 1) offset = divisors[1] - divisors[0];
@@ -440,8 +474,9 @@ namespace ImageAISolver
             }
             // 右側找完，往左找
             // 
-            // 由中間或 voidS 往左找到不能是谷底的起始點           
-            for (int i = voidS == pts.Count ? pts.Count / 2 : voidS; i >=0 ; i--)
+            // 由上次的起點(避免遺漏中間的谷地)或 voidS 往左找到不能是谷底的起始點   
+            
+            for (int i = voidS == pts.Count ? searchStart : voidS; i >=0 ; i--)
             {
                 if (pts[i].YValues[0] <= valleyBound) continue;
                 else
@@ -456,12 +491,28 @@ namespace ImageAISolver
             {
                 if (cliffDown < 0) // find start of the smallest
                 {
-                    if ( pts[i].YValues[0] <= valleyBound) cliffDown = i;
+                    if (pts[i].YValues[0] <= valleyBound)
+                    {
+                        cliffDown = i;
+                        DataPoint dp = new DataPoint();
+                        dp.MarkerStyle = MarkerStyle.Cross;
+                        dp.Color = Color.Black;
+                        dp.XValue = i;
+                        dp.YValues = new double[] { valleyBound };
+                        chart1.Series[2 + seriesOffset].Points.Add(dp);
+                    }
                 }
                 else // find end of the smallest
                 {
                     if (valleyBound < pts[i].YValues[0] || pts[i].YValues[0] < zeroBound )
                     {
+                        DataPoint dp = new DataPoint();
+                        dp.MarkerStyle = MarkerStyle.Cross;
+                        dp.Color = Color.Black;
+                        dp.XValue = i;
+                        dp.YValues = new double[] { valleyBound };
+                        chart1.Series[2 + seriesOffset].Points.Add(dp);
+
                         divisors.Add((cliffDown + i) / 2);
                         cliffDown = -1;
                         if (pts[i].YValues[0] < zeroBound ) break;//提早結束
@@ -537,6 +588,7 @@ namespace ImageAISolver
                 {
                     // 歸屬在此interval，更新成平均值
                     sections[id] = (counts[id] * sections[id] + intervals[i]) / (counts[id] + 1);
+                    ttt = (float)sections[id] / num;
                     counts[id]++;
                 }
                 else
@@ -583,7 +635,7 @@ namespace ImageAISolver
                 else
                 {
                     trueSection = (int)Math.Round(sections[0] + sections[1]); // 左右有壕溝
-                    ssss = (int)Math.Round((divisors[1] + divisors[2]) / 2.0 - trueSection);
+                    ssss = (int)Math.Round((divisors[3] + divisors[2]) / 2.0 - trueSection);
                 }
             }
 
@@ -728,7 +780,13 @@ namespace ImageAISolver
                 //chart1.Series[2 + seriesOffset].Points.Add(dp);
             }
 
-            for (int i = ssss; i < (alongHeight ? colorImage.Height : colorImage.Width); )
+            int end = pts.Count;
+            if (alongHeight)
+            { if (verticalHeader2 > 0) end = verticalHeader2; }
+            else
+            { if (horizontalHeader2 > 0) end = horizontalHeader2; }
+
+            for (int i = ssss; i < end; )
             {
                 DataPoint dp = new DataPoint();
                 dp.XValue = i;
