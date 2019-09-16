@@ -471,6 +471,7 @@ namespace ImageAISolver
 
             // 找到的原始分隔點加入線圖，y值設為0
             divisors.Sort();
+
             foreach (int i in divisors)
                 chart1.Series[2+seriesOffset].Points.AddXY(i, 0);
 
@@ -479,19 +480,23 @@ namespace ImageAISolver
             // 整理點資料調整出正確分隔點
              // 調整 divisions 
             // 取得間隔平均，若間隔小於平均的1/5視為需刪除調整的division
-            float avg = divisors[1] - divisors[0];
+            float toosmall = divisors[1] - divisors[0];
             for (int i = 2; i < divisors.Count; i++)
-                avg += divisors[i] - divisors[i - 1];
-            avg /= divisors.Count - 1;
-            avg /= 5;
+                toosmall += divisors[i] - divisors[i - 1];
+            toosmall /= divisors.Count - 1;
+            toosmall /= 5;
+
+            // 每個緯度最多有50組字體，因此若間隔小於 長 / 100 者視為雜訊
+            toosmall = alongHeight ? grayImage.Height / 100 : grayImage.Width / 100;
+
             int ccc = 0;
             for( int i = divisors.Count -1; i > 0; i--)
             {
-                if( ( divisors[i]-divisors[i-1] ) < avg )
+                if( ( divisors[i]-divisors[i-1] ) < toosmall )
                 {
                     int ii = i-1;
                     ccc = 1;
-                    while(  ii-1 >= 0 && divisors[ii] - divisors[ii-1] < avg )
+                    while(  ii-1 >= 0 && divisors[ii] - divisors[ii-1] < toosmall )
                     {
                         ccc++;
                         ii = ii - 1;
@@ -510,27 +515,25 @@ namespace ImageAISolver
             List<int> intervals = new List<int>();
             List<float> sections = new List<float>();
             List<int> counts = new List<int>();
-            int l = divisors[1];
+           // int l = divisors[1];
             // 忽略前後兩個 bounds
             if (divisors.Count <= 2) return;
             for( int i = 2; i < divisors.Count-1;i++)
-            {
-                intervals.Add(divisors[i] - l);
-                l = divisors[i];
-            }
+                intervals.Add(divisors[i] - divisors[i-1]);
+ 
             // 排除頭尾兩個，保留中間的 intervals
             intervals.Sort();
 
             sections.Add(intervals[0]);
-            l = intervals[0];
+            // l = intervals[0];
             float num = 8;
-            float ttt = l / num; // tolerance
+            float ttt = (float) intervals[0] / num; // tolerance
             counts.Add(1);
             int id = 0;
             for( int i = 1; i < intervals.Count-1; i++ )
             {
                 // 接續的是否差異太大
-                if( Math.Abs( intervals[i] -l ) < ttt )
+                if( Math.Abs( intervals[i] - intervals[i-1]) < ttt )
                 {
                     // 歸屬在此interval，更新成平均值
                     sections[id] = (counts[id] * sections[id] + intervals[i]) / (counts[id] + 1);
@@ -542,10 +545,10 @@ namespace ImageAISolver
                     sections.Add(intervals[i]);
                     counts.Add(1);
                     // 變更餘裕
-                    ttt = intervals[i] / num;
+                    ttt = (float)intervals[i] / num;
                     id++;
                 }
-                l = intervals[i];
+               // l = intervals[i];
             }
             while( sections.Count > 2 )
             {
@@ -561,20 +564,35 @@ namespace ImageAISolver
                 sections.RemoveAt(idx);
                 counts.RemoveAt(idx);
             }
-            // 如果 section 只有一個
+
+            // 如果 section 最多有兩個
             int trueSection;
-            if (sections.Count == 1) trueSection = (int)Math.Round( sections[0] );
+            int ssss;
+            if (sections.Count == 1)
+            {
+                trueSection = (int)Math.Round(sections[0]); // 單間格型
+                ssss = divisors[1] - trueSection; // divisors[0] 會略有偏差
+            }
             else
             {
-                if (sections[1] > 5 * sections[0]) trueSection = (int)sections[0];
-                else trueSection = (int)Math.Round( sections[0]  + sections[1] );
+                if (sections[1] > 5 * sections[0])
+                {
+                    trueSection = (int)sections[0]; // 分隔點資料有大漏洞
+                    ssss = divisors[1] - trueSection; // divisors[0] 會略有偏差
+                }
+                else
+                {
+                    trueSection = (int)Math.Round(sections[0] + sections[1]); // 左右有壕溝
+                    ssss = (int)Math.Round((divisors[1] + divisors[2]) / 2.0 - trueSection);
+                }
             }
 
 
-            int ssss = sections.Count == 2 ?  (int)Math.Round( (divisors[2]+divisors[3])/2.0 - trueSection ): divisors[1]-trueSection;
+            //int ssss = sections.Count == 2 ?  (int)Math.Round( (divisors[2]+divisors[3])/2.0 - trueSection ): divisors[1]-trueSection;
             double thresh = largest / 100;
             if (alongHeight)
             {
+                verticalOffset = ssss;
                 verticalInterval = trueSection;
                 verticalCount = -1;
                 // ssss 之前是否有 索引
@@ -645,6 +663,7 @@ namespace ImageAISolver
             }
             else
             {
+                horizontalOffset = ssss;
                 horizontalInterval = trueSection;
                 horizontalCount = -1;
                 int ps = -1;
