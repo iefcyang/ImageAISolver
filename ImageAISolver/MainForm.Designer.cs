@@ -170,6 +170,7 @@
             series2.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
             series3.ChartArea = "ChartArea1";
             series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
+            series3.Color = System.Drawing.Color.Blue;
             series3.Legend = "Legend1";
             series3.Name = "Series3";
             series3.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
