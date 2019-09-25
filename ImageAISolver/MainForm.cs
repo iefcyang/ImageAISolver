@@ -74,27 +74,93 @@ namespace ImageAISolver
             ps.X = horizontalGrids[0];// horizontalOffset;
             Point pe = Point.Empty;
             pe.X = horizontalGrids[horizontalGrids.Count - 1];// horizontalOffset + horizontalCount * horizontalInterval;
-           // ps.Y = pe.Y = y;
-           // g.DrawLine(Pens.Red, ps, pe);
-            for( int i = 0; i < verticalGrids.Count; i++ )// verticalCount; i++ )
+            int st = 0;
+            if( horizontalHeader < 0 && horizontalHeader2 < 0)
+            {
+                st = 1;
+                ps.X = horizontalGrids[1];
+            }
+            // ps.Y = pe.Y = y;
+            // g.DrawLine(Pens.Red, ps, pe);
+            for ( int i = st; i < verticalGrids.Count; i++ )// verticalCount; i++ )
             {
                 //y += verticalInterval;
                 ps.Y = pe.Y = verticalGrids[i];// y;
                 g.DrawLine(Pens.Red, ps, pe);
             }
 
+            st = 0;
             ps.Y = verticalGrids[0];// verticalOffset;
             pe.Y = verticalGrids[verticalGrids.Count - 1]; // verticalOffset + verticalInterval * verticalCount;
             int x = horizontalOffset;
+            if( verticalHeader < 0 && verticalHeader2 < 0 )
+            {
+                ps.Y = verticalGrids[1];
+                st = 1;
+            }
            // ps.X = pe.X = x;
            // g.DrawLine(Pens.Red, ps, pe);
-            for ( int i = 0; i < horizontalGrids.Count; i++ )// horizontalCount; i++ )
+            for ( int i = st; i < horizontalGrids.Count; i++ )// horizontalCount; i++ )
             {
                 //x += horizontalInterval;
                 ps.X = pe.X = horizontalGrids[i]; // x;
                 g.DrawLine(Pens.Red, ps, pe);
 
             }
+
+            // Draw row headers along vertical grid
+            st = 0;
+            int headerLength = grayImage.Width / horizontalGrids.Count / 4;
+            if (headerLength < 20) headerLength = 20; // at least 40 pixel
+            int ys = verticalGrids[0];
+                int ye = verticalGrids[verticalGrids.Count - 1];
+            int xe;
+            if( horizontalHeader < 0 && horizontalHeader2 < 0 )
+            {
+                xe = ( horizontalGrids[0]+horizontalGrids[1])/2;
+                st = 1;
+                ys = verticalGrids[1];
+            }
+            else xe = horizontalHeader > 0 ? horizontalHeader : horizontalHeader2;
+            if( xe <= headerLength ) headerLength = (int)(xe * 0.8 );
+            xe = xe - headerLength;
+            g.DrawLine(Pens.Green, xe, ys, xe, ye); // vertical line
+            int xs = xe;
+            xe = xe + headerLength + headerLength;
+            g.DrawLine(Pens.Green, xe, ys, xe, ye); // vertical line            
+            for( int i = st; i < verticalGrids.Count; i++ )
+            {
+                g.DrawLine(Pens.Green, xs, verticalGrids[i], xe, verticalGrids[i]); // vertical line
+            }
+
+            st = 0;
+            // Draw column headers along vertical grid
+
+            xs = horizontalGrids[0];
+            xe = horizontalGrids[horizontalGrids.Count - 1];
+            if (verticalHeader < 0 && verticalHeader2 < 0)
+            {
+                ye = (verticalGrids[0]+verticalGrids[1])/2;
+                st = 1;
+                xs = horizontalGrids[1];
+            }
+            else ye = verticalHeader > 0 ? verticalHeader : verticalHeader2;
+            headerLength = grayImage.Height / verticalGrids.Count / 4;
+            if (ye <= headerLength) headerLength = (int)(ye * 0.8);
+            if (headerLength < 15) headerLength = 15; // at least 40 pixel
+            if (headerLength > 28) headerLength = 28;
+
+            ye = ye - headerLength;
+            g.DrawLine(Pens.Green, xs, ye, xe, ye); // vertical line
+            ys = ye;
+            ye = ye + headerLength + headerLength;
+            g.DrawLine(Pens.Green, xs, ye, xe, ye); // vertical line            
+            for (int i = st; i < horizontalGrids.Count; i++)
+            {
+                g.DrawLine(Pens.Green, horizontalGrids[i],ys, horizontalGrids[i], ye); // vertical line
+            }
+
+
         }
 
         int leftBound, rightBound, topBound, bottonBound;
