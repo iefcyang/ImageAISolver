@@ -14,6 +14,7 @@ namespace ImageAISolver
 {
     public partial class MainForm : Form
     {
+        Random rnd = new Random();
         public MainForm()
         {
             InitializeComponent();
@@ -24,6 +25,7 @@ namespace ImageAISolver
         {
             if( dlgOpen.ShowDialog() == DialogResult.OK     )
             {
+                isDouble = false;
                 Cursor = Cursors.WaitCursor;
 
                 Text = "Character Recognizer + " + Path.GetFileName(dlgOpen.FileName);
@@ -36,6 +38,8 @@ namespace ImageAISolver
                 Cursor = Cursors.Default;
             }
         }
+        bool isDouble = false;
+
         Bitmap colorImage;
         Bitmap grayImage;
         byte[,] dataImage;
@@ -110,16 +114,19 @@ namespace ImageAISolver
 
             // Draw row headers along vertical grid
             st = 0;
+            int offset = 0;
+
             int headerLength = grayImage.Width / horizontalGrids.Count / 4;
             if (headerLength < 20) headerLength = 20; // at least 40 pixel
-            int ys = verticalGrids[0];
-                int ye = verticalGrids[verticalGrids.Count - 1];
+            if (isDouble) offset = (verticalGrids[1] - verticalGrids[0]) / 2;
+            int ys = verticalGrids[0]-offset;
+                int ye = verticalGrids[verticalGrids.Count - 1]-offset;
             int xe;
             if( horizontalHeader < 0 && horizontalHeader2 < 0 )
             {
                 xe = ( horizontalGrids[0]+horizontalGrids[1])/2;
                 st = 1;
-                ys = verticalGrids[1];
+                ys = verticalGrids[1]-offset;
             }
             else xe = horizontalHeader > 0 ? horizontalHeader : horizontalHeader2;
             if( xe <= headerLength ) headerLength = (int)(xe * 0.8 );
@@ -130,7 +137,7 @@ namespace ImageAISolver
             g.DrawLine(Pens.Green, xe, ys, xe, ye); // vertical line            
             for( int i = st; i < verticalGrids.Count; i++ )
             {
-                g.DrawLine(Pens.Green, xs, verticalGrids[i], xe, verticalGrids[i]); // vertical line
+                g.DrawLine(Pens.Green, xs, verticalGrids[i]-offset, xe, verticalGrids[i]-offset); // vertical line
             }
 
             st = 0;
@@ -451,12 +458,15 @@ namespace ImageAISolver
             //if (valleyBound > alt)
             //    valleyBound = alt;
 
-            valleyBound = (int)(smallest + (largest - smallest) /10);
+            valleyBound = (int)(smallest + (largest - smallest) /12);
 
             //bool OK = true;
             //do
             //{
                 int centerStart = 0;
+            double localMin=0; double localValue = 0;
+
+            bool useLocal = true;
 
                 // 由中間或 voidE 往右找到不能是谷底的起始點    
                 int searchStart = voidE == 0 ? pts.Count / 2 : voidE;
@@ -471,99 +481,151 @@ namespace ImageAISolver
                 }
                 searchStart = centerStart; // 設定左邊開始搜尋的起點，避免遺漏中間的谷地
 
-                double cliffDown = -1;
-                zeroBound = (int)(valleyBound / 10);
-                zeroBound = (int)(smallest / 10);
-                // 開始往右尋找分隔線的谷底分布
-                for (int i = centerStart; i < pts.Count; i++)
+            double cliffDown = -1;
+            zeroBound = (int)(valleyBound / 10);
+            zeroBound = (int)(smallest / 10);
+            // 開始往右尋找分隔線的谷底分布
+            for (int i = centerStart; i < pts.Count; i++)
+            {
+                if (cliffDown < 0) // 尚未有懸崖下墜點，找尋中 find start of the smallest
                 {
-                    if (cliffDown < 0) // 尚未有懸崖下墜點，找尋中 find start of the smallest
+                    if (pts[i].YValues[0] <= valleyBound)
                     {
-                        if (pts[i].YValues[0] <= valleyBound)
-                        {
-                            cliffDown = pts[i].XValue; // 找到下墜點
-                            DataPoint dp = new DataPoint();
-                            dp.MarkerStyle = MarkerStyle.Cross;
-                            dp.Color = Color.Black;
-                            dp.XValue = pts[i].XValue;
-                            dp.YValues = new double[] { valleyBound };
-                            chart1.Series[2 + seriesOffset].Points.Add(dp);
-                        }
-                    }
-                    else // 已通過下墜點，在谷底中，尋找攀升點中 find end of the smallest 往右若碰到 0 表示邊界到了
-                    {
-                        // 攀升點找到，或低迷到水平線永遠的谷底
-                        if (pts[i].YValues[0] > valleyBound || pts[i].YValues[0] < zeroBound)
-                        {
-                            DataPoint dp = new DataPoint();
-                            dp.MarkerStyle = MarkerStyle.Cross;
-                            dp.Color = Color.Black;
-                            dp.XValue = pts[i].XValue;
-                            dp.YValues = new double[] { valleyBound };
-                            chart1.Series[2 + seriesOffset].Points.Add(dp);
+                        cliffDown = pts[i].XValue; // 找到下墜點
+                        localValue = pts[i].YValues[0];
+                        localMin = cliffDown;
 
-                            // 設定分隔點是谷底的中間
-                            divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
-                            //if (divisors.Count > 1) offset = divisors[1] - divisors[0];
-                            // 繼續下一個谷底的搜尋
-                            cliffDown = -1;
-                            // 如果已碰到水平線，結束搜尋
-                            if (pts[i].YValues[0] < zeroBound) break;//提早結束
-                        }
-                    }
-                }
-                // 右側找完，往左找
-                // 
-                // 由上次的起點(避免遺漏中間的谷地)或 voidS 往左找到不能是谷底的起始點   
 
-                for (int i = voidS == pts.Count ? searchStart : voidS; i >= 0; i--)
-                {
-                    if (pts[i].YValues[0] <= valleyBound) continue;
+                        DataPoint dp = new DataPoint();
+                        dp.MarkerStyle = MarkerStyle.Cross;
+                        dp.Color = Color.Black;
+                        dp.XValue = pts[i].XValue;
+                        dp.YValues = new double[] { valleyBound };
+                        chart1.Series[2 + seriesOffset].Points.Add(dp);
+                    }
                     else
                     {
-                        centerStart = i - 1;
-                        break;
+                        if (pts[i].YValues[0] < localValue)
+                        {
+                            localValue = pts[i].YValues[0];
+                            localMin = pts[i].XValue;
+                        }
                     }
                 }
-
-                cliffDown = -1;
-                for (int i = centerStart; i > 0; i--)
+                else // 已通過下墜點，在谷底中，尋找攀升點中 find end of the smallest 往右若碰到 0 表示邊界到了
                 {
-                    if (cliffDown < 0) // find start of the smallest
+                    // 攀升點找到，或低迷到水平線永遠的谷底
+                    if (pts[i].YValues[0] > valleyBound || pts[i].YValues[0] < zeroBound)
                     {
-                        if (pts[i].YValues[0] <= valleyBound)
-                        {
-                            cliffDown = pts[i].XValue;
-                            DataPoint dp = new DataPoint();
-                            dp.MarkerStyle = MarkerStyle.Cross;
-                            dp.Color = Color.Black;
-                            dp.XValue = pts[i].XValue;
-                            dp.YValues = new double[] { valleyBound };
-                            chart1.Series[2 + seriesOffset].Points.Add(dp);
-                        }
-                    }
-                    else // find end of the smallest
-                    {
-                        if (valleyBound < pts[i].YValues[0] || pts[i].YValues[0] < zeroBound)
-                        {
-                            DataPoint dp = new DataPoint();
-                            dp.MarkerStyle = MarkerStyle.Cross;
-                            dp.Color = Color.Black;
-                            dp.XValue = pts[i].XValue;
-                            dp.YValues = new double[] { valleyBound };
-                            chart1.Series[2 + seriesOffset].Points.Add(dp);
+                        DataPoint dp = new DataPoint();
+                        dp.MarkerStyle = MarkerStyle.Cross;
+                        dp.Color = Color.Black;
+                        dp.XValue = pts[i].XValue;
+                        dp.YValues = new double[] { valleyBound };
+                        chart1.Series[2 + seriesOffset].Points.Add(dp);
 
-                            divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
-                            cliffDown = -1;
-                            if (pts[i].YValues[0] < zeroBound) break;//提早結束
+                        // 設定分隔點是谷底的中間
+                        if (useLocal)
+                            divisors.Add((int)localMin);
+                        else divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
+                        //if (divisors.Count > 1) offset = divisors[1] - divisors[0];
+                        // 繼續下一個谷底的搜尋
+                        cliffDown = -1;
+                        // 如果已碰到水平線，結束搜尋
+                        if (pts[i].YValues[0] < zeroBound) break;//提早結束
+                    }
+                    else
+                    {
+                        if (pts[i].YValues[0] < localValue)
+                        {
+                            localValue = pts[i].YValues[0];
+                            localMin = pts[i].XValue;
                         }
                     }
                 }
+            }
+            // 右側找完，往左找
+            // 
+            // 由上次的起點(避免遺漏中間的谷地)或 voidS 往左找到不能是谷底的起始點   
 
-                // 找到的原始分隔點加入線圖，y值設為0
-                divisors.Sort();
+            for (int i = voidS == pts.Count ? searchStart : voidS; i >= 0; i--)
+            {
+                if (pts[i].YValues[0] <= valleyBound) continue;
+                else
+                {
+                    centerStart = i - 1;
+                    break;
+                }
+            }
 
+            cliffDown = -1;
+            for (int i = centerStart; i > 0; i--)
+            {
+                if (cliffDown < 0) // find start of the smallest
+                {
+                    if (pts[i].YValues[0] <= valleyBound)
+                    {
+                        cliffDown = pts[i].XValue;
+
+                        localValue = pts[i].YValues[0];
+                        localMin = cliffDown;
+
+                        DataPoint dp = new DataPoint();
+                        dp.MarkerStyle = MarkerStyle.Cross;
+                        dp.Color = Color.Black;
+                        dp.XValue = pts[i].XValue;
+                        dp.YValues = new double[] { valleyBound };
+                        chart1.Series[2 + seriesOffset].Points.Add(dp);
+                    }
+                    else
+                    {
+                        if (pts[i].YValues[0] < localValue ||
+                            (pts[i].YValues[0] == localValue && rnd.Next() % 2 == 0))
+                        {
+                            localValue = pts[i].YValues[0];
+                            localMin = pts[i].XValue;
+                        }
+                    }
+                }
+                else // find end of the smallest
+                {
+                    if (valleyBound < pts[i].YValues[0] || pts[i].YValues[0] < zeroBound)
+                    {
+                        DataPoint dp = new DataPoint();
+                        dp.MarkerStyle = MarkerStyle.Cross;
+                        dp.Color = Color.Black;
+                        dp.XValue = pts[i].XValue;
+                        dp.YValues = new double[] { valleyBound };
+                        chart1.Series[2 + seriesOffset].Points.Add(dp);
+
+                        if (useLocal)
+                            divisors.Add((int)(localMin));
+                        else
+                            divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
+                        cliffDown = -1;
+                        if (pts[i].YValues[0] < zeroBound) break;//提早結束
+                    }
+                    else
+                    {
+                        if (pts[i].YValues[0] < localValue ||
+                            ( pts[i].YValues[0] == localValue && rnd.Next() % 2 == 0 ))
+                        {
+                            
+                            localValue = pts[i].YValues[0];
+                            localMin = pts[i].XValue;
+                        }
+                    }
+                }
+            }
+
+            // 找到的原始分隔點加入線圖，y值設為0
+
+
+            
+            #region reSampling
+            //***** 再 sample 低點 方法
             // 找最大 和次大的Gap 存在時，提升 valleylvel 添加 divisors
+            divisors.Sort();
             int gapidx = 0, bigGap = divisors[1]-divisors[0];
             int secondidx = 0, secondGap = bigGap;
             double sum = bigGap;
@@ -607,12 +669,26 @@ namespace ImageAISolver
                         if (pts[i].YValues[0] <= valleyBound)
                         {
                             cliffDown = pts[i].XValue;
+
+                            localValue = pts[i].YValues[0];
+                            localMin = cliffDown;
+
                             DataPoint dp = new DataPoint();
                             dp.MarkerStyle = MarkerStyle.Cross;
                             dp.Color = Color.Black;
                             dp.XValue = pts[i].XValue;
                             dp.YValues = new double[] { valleyBound };
                             chart1.Series[2 + seriesOffset].Points.Add(dp);
+                        }
+                        else
+                        {
+                            if (pts[i].YValues[0] < localValue ||
+                                (pts[i].YValues[0] == localValue && rnd.Next() % 2 == 0))
+                            {
+
+                                localValue = pts[i].YValues[0];
+                                localMin = pts[i].XValue;
+                            }
                         }
                     }
                     else // find end of the smallest
@@ -626,9 +702,24 @@ namespace ImageAISolver
                             dp.YValues = new double[] { valleyBound };
                             chart1.Series[2 + seriesOffset].Points.Add(dp);
 
-                            divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
+                            if (useLocal)
+                                divisors.Add((int)(localMin));
+                            else
+                                divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
+
+                           // divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
                             cliffDown = -1;
                             if (pts[i].YValues[0] < zeroBound) break;//提早結束
+                        }
+                        else
+                        {
+                            if (pts[i].YValues[0] < localValue ||
+                                (pts[i].YValues[0] == localValue && rnd.Next() % 2 == 0))
+                            {
+
+                                localValue = pts[i].YValues[0];
+                                localMin = pts[i].XValue;
+                            }
                         }
                     }
 
@@ -656,12 +747,26 @@ namespace ImageAISolver
                         if (pts[i].YValues[0] <= valleyBound)
                         {
                             cliffDown = pts[i].XValue;
+
+                            localValue = pts[i].YValues[0];
+                            localMin = cliffDown;
+
                             DataPoint dp = new DataPoint();
                             dp.MarkerStyle = MarkerStyle.Cross;
                             dp.Color = Color.Black;
                             dp.XValue = pts[i].XValue;
                             dp.YValues = new double[] { valleyBound };
                             chart1.Series[2 + seriesOffset].Points.Add(dp);
+                        }
+                        else
+                        {
+                            if (pts[i].YValues[0] < localValue ||
+                                (pts[i].YValues[0] == localValue && rnd.Next() % 2 == 0))
+                            {
+
+                                localValue = pts[i].YValues[0];
+                                localMin = pts[i].XValue;
+                            }
                         }
                     }
                     else // find end of the smallest
@@ -675,48 +780,107 @@ namespace ImageAISolver
                             dp.YValues = new double[] { valleyBound };
                             chart1.Series[2 + seriesOffset].Points.Add(dp);
 
-                            divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
+                            if (useLocal)
+                                divisors.Add((int)(localMin));
+                            else
+                                divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
+
+                            //divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
                             cliffDown = -1;
                             if (pts[i].YValues[0] < zeroBound) break;//提早結束
+                        }
+                        else
+                        {
+                            if (pts[i].YValues[0] < localValue ||
+                                (pts[i].YValues[0] == localValue && rnd.Next() % 2 == 0))
+                            {
+
+                                localValue = pts[i].YValues[0];
+                                localMin = pts[i].XValue;
+                            }
                         }
                     }
 
 
                 }
             }
-
-            //     if (!OK)
-            //     {
-            //         OK = true; // only add search once
-            //     }
-            //     else
-            //     {
-            //         // 估算 間隔平均差異量
-            //         double aagg = 0.0, bbb = divisors[0];
-            //         for (int b = 1; b < divisors.Count; b++)
-            //         {
-            //             aagg += divisors[b] - divisors[b - 1];
-            //             bbb += divisors[b];
-            //         }
-            //         aagg /= (divisors.Count - 1);
-            //         bbb /=  divisors.Count;
-            //         if (aagg > bbb / 3)
-            //         {
-            //             OK = false;
-            //             // 提升 valley bound 添加分隔點
-            //             valleyBound = (int)(smallest + (largest - smallest) / 2 );
-            //         }
-            //         else
-            //         {
-            //             // debug 強制
-            //             OK = false;
-            //             // 提升 valley bound 添加分隔點
-            //             valleyBound = (int)(smallest + (largest - smallest) / 2);
-            //         }
-            //     }
-            //} while (!OK);
+            #endregion
 
 
+
+            #region addPreviousInterval
+
+            // **** 訪前後間距 大區間添加法
+            // 2019 
+            // if the next interval is larger than 1.8 previous interval, add a divisor
+            //divisors.Sort();
+            //int keep = -1;
+            //for (int i = 2; i < divisors.Count; i++)
+            //{
+            //    int pre = divisors[i - 1] - divisors[i - 2];
+            //    if (keep > 0 && pre < keep / 2) continue;
+
+            //    if (divisors[i] - divisors[i - 1] > 1.8 * pre)
+            //    {
+            //        keep = pre;
+
+            //        if (divisors[i] - divisors[i - 1] < 2.2 * pre)
+            //            divisors.Insert(i, (divisors[i - 1] + divisors[i]) / 2);
+            //        else
+            //            divisors.Insert(i, divisors[i - 1] + pre);
+            //    }
+            //}
+            //keep = -1;
+            //for (int i = divisors.Count - 3; i >= 0; i--)
+            //{
+            //    int pre = divisors[i + 2] - divisors[i + 1];
+            //    if (keep > 0 && pre < keep / 2) continue;
+
+            //    if (divisors[i + 1] - divisors[i] > 1.8 * pre)
+            //    {
+            //        keep = pre;
+            //        if(divisors[i+1] - divisors[i] < 2.2 * pre)
+            //            divisors.Insert(i + 1, (divisors[i + 1] + divisors[i]) / 2);
+            //        else
+            //            divisors.Insert(i + 1, divisors[i + 1] - pre);
+            //        i++;
+            //    }
+            //}
+            #endregion
+
+
+            ////     if (!OK)
+            ////     {
+            ////         OK = true; // only add search once
+            ////     }
+            ////     else
+            ////     {
+            ////         // 估算 間隔平均差異量
+            ////         double aagg = 0.0, bbb = divisors[0];
+            ////         for (int b = 1; b < divisors.Count; b++)
+            ////         {
+            ////             aagg += divisors[b] - divisors[b - 1];
+            ////             bbb += divisors[b];
+            ////         }
+            ////         aagg /= (divisors.Count - 1);
+            ////         bbb /=  divisors.Count;
+            ////         if (aagg > bbb / 3)
+            ////         {
+            ////             OK = false;
+            ////             // 提升 valley bound 添加分隔點
+            ////             valleyBound = (int)(smallest + (largest - smallest) / 2 );
+            ////         }
+            ////         else
+            ////         {
+            ////             // debug 強制
+            ////             OK = false;
+            ////             // 提升 valley bound 添加分隔點
+            ////             valleyBound = (int)(smallest + (largest - smallest) / 2);
+            ////         }
+            ////     }
+            ////} while (!OK);
+
+            divisors.Sort();
             // 整理點資料調整出正確分隔點
             // 調整 divisions 
             // 取得間隔平均，若間隔小於平均的1/5視為需刪除調整的division
@@ -752,6 +916,70 @@ namespace ImageAISolver
                     i = i - ccc;
                 }
             }
+
+
+
+            // 大空隙添點
+            //divisors.Sort();
+            //int possibleInterval = -1;
+            //List<int> temp = new List<int>();
+            //for (int i = 1; i < divisors.Count; i++)
+            //    temp.Add(divisors[i] - divisors[i-1]);
+            //temp.Sort();
+            //int zzz = temp[0];
+            //List<int> vu = new List<int>();
+            //List<int> tt = new List<int>();
+            //vu.Add(zzz);
+            //tt.Add(1);
+            //int idd = 0;
+
+            //for (int i = 1; i < temp.Count; i++)
+            //{
+            //    if( temp[i]-zzz < zzz /8.0 )
+            //    {
+            //        tt[idd]++;
+            //        vu[idd] = (vu[idd]+temp[i])/ 2;
+            //        zzz = vu[idd];
+            //    }
+            //    else
+            //    {
+            //         zzz = temp[i];
+            //       vu.Add(zzz);
+            //        tt.Add(1);
+            //        idd++;
+            //    }
+            //}
+            //int mid = 0;
+            //int mmm = tt[0];
+            //for( int i = 1; i < vu.Count; i++)
+            //{
+            //    if( tt[i] > mmm )
+            //    {
+            //        mid = i;
+            //        mmm = tt[i];
+            //    }
+            //}
+            //possibleInterval = vu[mid];
+
+            
+            //for (int i = 2; i < divisors.Count; i++)
+            //{
+            //    int pre = divisors[i - 1] - divisors[i - 2];
+            //    if (possibleInterval > 0 && pre < possibleInterval / 2) continue;
+
+            //    if (divisors[i] - divisors[i - 1] > 1.8 * pre)
+            //    {
+            //        possibleInterval = pre;
+
+            //        if (divisors[i] - divisors[i - 1] < 2.2 * pre)
+            //            divisors.Insert(i, (divisors[i - 1] + divisors[i]) / 2);
+            //        else
+            //            divisors.Insert(i, divisors[i - 1] + pre);
+            //    }
+            //}
+
+
+
 
 
             foreach (int i in divisors)
@@ -837,6 +1065,7 @@ namespace ImageAISolver
                 }
             }
 
+            //isDouble = false;
             // 如果 section 最多有兩個
             int trueSection;
             int ssss;
@@ -861,7 +1090,24 @@ namespace ImageAISolver
                     ssss = (int)Math.Round((divisors[3] + divisors[2]) / 2.0 - trueSection);
                     tttt = divisors[divisors.Count - 1];
                 }
+
+                int lll = divisors[0];
+
+                // 2019  ***
+                for (int i = 1; i < divisors.Count - 1; i++)
+                {
+                    
+                    divisors[i] = (divisors[i] +lll) / 2;
+                    lll = divisors[i + 1];
+                    divisors.RemoveAt(i + 1);
+                }
+                isDouble = true;
+                sections[0] = sections[0] + sections[1];
+                sections.RemoveAt(1);
+
+
             }
+             
             int startEnd;
             if (alongHeight) startEnd = verticalHeader >= 0 ? verticalHeader : 0;
             else startEnd = horizontalHeader >= 0 ? (  !horizontalInMiddle ? horizontalHeader : 0 ) : 0;
@@ -1013,8 +1259,16 @@ namespace ImageAISolver
                                 closePoint = divisors[a];
                             }
                         }
-                        if (closeValue < trueSection / 4)
+                        if (closeValue < trueSection * 0.6 ) // * 3.0 / 8.0)
                             verticalGrids[v] = closePoint;
+                        else
+                        {
+                            if( v>1 &&  verticalGrids[v]-verticalGrids[v-1] < (verticalGrids[v-1] - verticalGrids[v - 2]) * 0.9 )
+                            {
+                                verticalGrids.RemoveAt(v);
+                                v++;
+                            }
+                        }
                     }
                 }
                 else
@@ -1032,8 +1286,8 @@ namespace ImageAISolver
                                 closePoint = pt;
                             }
                         }
-                        if (closeValue < trueSection / 4)
-                        verticalGrids[v] = closePoint;
+                        if (closeValue < trueSection * 0.5  && v > 1 ? (closePoint - verticalGrids[v - 1] < 1.2 * (verticalGrids[v - 1] - verticalGrids[v - 2])) : true)
+                            verticalGrids[v] = closePoint;
                     }
                 }
 
@@ -1116,8 +1370,16 @@ namespace ImageAISolver
                                 closePoint = divisors[a];
                             }
                         }
-                        if (closeValue < trueSection / 4)
+                        if (closeValue < trueSection * 0.6 ) // 3.0 / 8.0 )
                             horizontalGrids[v] = closePoint;
+                        else
+                        {
+                            if (v > 1 && horizontalGrids[v] - horizontalGrids[v - 1] < (horizontalGrids[v - 1] - horizontalGrids[v - 2]) * 0.9)
+                            {
+                                horizontalGrids.RemoveAt(v);
+                                v++;
+                            }
+                        }
                     }
                 }
                 else
@@ -1135,7 +1397,7 @@ namespace ImageAISolver
                                 closePoint = pt;
                             }
                         }
-                        if (closeValue < trueSection / 4)
+                        if (closeValue < trueSection * 0.5  && v > 1 ? ( closePoint-horizontalGrids[v-1] < 1.2 * (horizontalGrids[v-1 ]- horizontalGrids[v - 2]) ) : true ) 
                             horizontalGrids[v] = closePoint;
                     }
                 }
