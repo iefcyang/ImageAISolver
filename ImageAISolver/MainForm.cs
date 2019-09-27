@@ -48,8 +48,82 @@ namespace ImageAISolver
 
                 BtnGray_Click(null, null);
                 Cursor = Cursors.Default;
+                rowDifferences = new float[colorImage.Height];
+                colDifferences = new float[colorImage.Width];
             }
         }
+
+        void AdjustRectangle( ref Rectangle rect )
+        {
+            // 取得變化量
+            float last = 0;
+            float sum = (rect.Width * 255);
+
+            for (int c = 0; c < rect.Width; c++) last += dataImage[rect.Y, rect.X + c];            
+            for ( int r = 1; r < rect.Height-1; r++)
+            {
+                float total = 0; 
+                for (int c = 0; c < rect.Width; c++) total += dataImage[rect.Y + r, rect.X + c] ;
+                rowDifferences[r - 1] = Math.Abs(total - last) / sum;
+                last = total;
+            }
+
+            sum = rect.Height * 255;
+            last = 0;
+            for (int r= 0; r < rect.Height; r++) last += dataImage[rect.Y + r, rect.X];
+            for (int c = 1; c < rect.Width - 1; c++)
+            {
+                float total = 0;
+                for (int r = 0; r < rect.Height; r++) total += dataImage[rect.Y + r, rect.X + c];
+                colDifferences[c - 1] = Math.Abs(total - last) / sum;
+                last = total;
+            }
+            float limit = 0.000001f; // 0.001f;
+            int topOff = 0, bottomOff=0, leftOff=0, rightOff=0; 
+            // top
+            for( int r = 0; r < rect.Height-1; r++)
+            {
+                if( rowDifferences[r] >= limit )
+                {
+                    topOff = r - 1;
+                    break;
+                }
+            }
+            // bottom
+            for (int r = rect.Height - 2; r>=0; r--)
+            {
+                if (rowDifferences[r] >= limit)
+                {
+                    bottomOff = rect.Height - ( r+1 );
+                    break;
+                }
+            }
+            // left
+            for (int c = 0; c < rect.Width - 1; c++)
+            {
+                if (colDifferences[c] >= limit)
+                {
+                    leftOff = c - 1;
+                    break;
+                }
+            }
+            // right
+            for (int c = rect.Width - 2; c >= 0; c--)
+            {
+                if (colDifferences[c] >= limit)
+                {
+                    rightOff = rect.Width - (c + 1);
+                    break;
+                }
+            }
+            rect.X += (int) leftOff;
+            rect.Width -= (int)(leftOff + rightOff);
+            rect.Y += (int)topOff;
+            rect.Height -= (int)(topOff + bottomOff);
+
+        }
+
+
         bool isDouble = false;
 
         Bitmap colorImage;
@@ -84,7 +158,7 @@ namespace ImageAISolver
             GetGridInfo(false);
 
             // 繪製網格
-            Graphics g = Graphics.FromImage(grayImage);
+            Graphics g = pcbImage.CreateGraphics(); // Graphics.FromImage(grayImage);
             int y = verticalOffset;
             Point ps = Point.Empty;
             ps.X = horizontalGrids[0];// horizontalOffset;
@@ -191,7 +265,8 @@ namespace ImageAISolver
 
         int leftBound, rightBound, topBound, bottonBound;
         bool isFramed; // 是否有框
-
+        float[] rowDifferences, colDifferences;
+            
         void GetGridInfo(bool alongHeight)
         { 
             int seriesOffset = alongHeight ? 0 : 3;
@@ -206,6 +281,7 @@ namespace ImageAISolver
 
             if (alongHeight)
             {
+
                 // 各列圖素統計
                 for (int r = 0; r < grayImage.Height; r++)
                 {
@@ -1463,21 +1539,30 @@ namespace ImageAISolver
             rect.X = rowTitleXStart;
             Graphics g = Graphics.FromImage(grayImage);
 
+            labMessage.Text = "row headers:  ";
             for( int r = 0; r < verticalGrids.Count-1; r++)
             {
                 rect.Y = verticalGrids[r] - rowTitleYOffset;
                 rect.Height = verticalGrids[r + 1] - verticalGrids[r];
+
+                AdjustRectangle(ref rect);
+
+                if (rect.Width != 0 && rect.Height != 0)
+                {
+                    Bitmap b = grayImage.Clone(rect, grayImage.PixelFormat);
+                    pictureBox1.Image = b;
+                }
+
                 result = ocrReader.Read(grayImage, rect);
- Bitmap b = grayImage.Clone(rect, grayImage.PixelFormat);
-                pictureBox1.Image = b;
-              result =  ocrReader.Read(b);
 
                 rowTitles[r] = result.Text;
                 g.DrawRectangle(Pens.Blue, rect);
-                break;
+                labMessage.Text += $" \"{result.Text}\"";
+
+              // if( r== 4)  break;
             }
 
-            
+            labMessage.Text += "  column Headers:  ";
 
             rect.Height = colTitleHeight;
             rect.Y = colTitleYStart;
@@ -1485,9 +1570,14 @@ namespace ImageAISolver
             {
                 rect.X = horizontalGrids[c];
                 rect.Width = horizontalGrids[c + 1] - horizontalGrids[c];
+
+                AdjustRectangle(ref rect);
+
                 result = ocrReader.Read(grayImage, rect);
                 colTitles[c] = result.Text;
                 g.DrawRectangle(Pens.Blue, rect);
+
+                labMessage.Text += $" \"{result.Text}\"";
             }
             g.Dispose();
         }
