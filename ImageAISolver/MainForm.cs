@@ -9,11 +9,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using IronOcr;
+using IronOcr.Languages;
 
 namespace ImageAISolver
 {
+
     public partial class MainForm : Form
     {
+        AdvancedOcr ocrReader = new AdvancedOcr();
+
+        //string OCRRead(int x1, int y1, int x2, int y2)
+        //{
+        //    ocrReader.Language = IronOcr.Languages.i;
+
+        //    return "";
+        //}
+
         Random rnd = new Random();
         public MainForm()
         {
@@ -114,30 +126,33 @@ namespace ImageAISolver
 
             // Draw row headers along vertical grid
             st = 0;
-            int offset = 0;
+            rowTitleYOffset = 0;
 
             int headerLength = grayImage.Width / horizontalGrids.Count / 4;
             if (headerLength < 20) headerLength = 20; // at least 40 pixel
-            if (isDouble) offset = (verticalGrids[1] - verticalGrids[0]) / 2;
-            int ys = verticalGrids[0]-offset;
-                int ye = verticalGrids[verticalGrids.Count - 1]-offset;
+            if (isDouble) rowTitleYOffset = (verticalGrids[1] - verticalGrids[0]) / 2;
+            int ys = verticalGrids[0]-rowTitleYOffset;
+                int ye = verticalGrids[verticalGrids.Count - 1]-rowTitleYOffset;
             int xe;
             if( horizontalHeader < 0 && horizontalHeader2 < 0 )
             {
                 xe = ( horizontalGrids[0]+horizontalGrids[1])/2;
                 st = 1;
-                ys = verticalGrids[1]-offset;
+                ys = verticalGrids[1]-rowTitleYOffset;
             }
             else xe = horizontalHeader > 0 ? horizontalHeader : horizontalHeader2;
             if( xe <= headerLength ) headerLength = (int)(xe * 0.8 );
             xe = xe - headerLength;
+            rowTitleXStart = xe;
+            rowTitleWidth = headerLength+ headerLength;
+
             g.DrawLine(Pens.Green, xe, ys, xe, ye); // vertical line
             int xs = xe;
             xe = xe + headerLength + headerLength;
             g.DrawLine(Pens.Green, xe, ys, xe, ye); // vertical line            
             for( int i = st; i < verticalGrids.Count; i++ )
             {
-                g.DrawLine(Pens.Green, xs, verticalGrids[i]-offset, xe, verticalGrids[i]-offset); // vertical line
+                g.DrawLine(Pens.Green, xs, verticalGrids[i]-rowTitleYOffset, xe, verticalGrids[i]-rowTitleYOffset); // vertical line
             }
 
             st = 0;
@@ -158,6 +173,9 @@ namespace ImageAISolver
             if (headerLength > 28) headerLength = 28;
 
             ye = ye - headerLength;
+            colTitleYStart = ye;
+            colTitleHeight = headerLength + headerLength;
+
             g.DrawLine(Pens.Green, xs, ye, xe, ye); // vertical line
             ys = ye;
             ye = ye + headerLength + headerLength;
@@ -166,6 +184,7 @@ namespace ImageAISolver
             {
                 g.DrawLine(Pens.Green, horizontalGrids[i],ys, horizontalGrids[i], ye); // vertical line
             }
+            g.Dispose();
 
 
         }
@@ -1427,6 +1446,52 @@ namespace ImageAISolver
         List<int> horizontalGrids = new List<int>();
 
         int horizontalOffset, horizontalInterval, horizontalCount;
+        int rowTitleYOffset = 0;
+        int rowTitleWidth;
+        int rowTitleXStart;
+        int colTitleHeight;
+        int colTitleYStart;
+
+        private void BtnOCR_Click(object sender, EventArgs e)
+        {
+            OcrResult result;
+            string[] rowTitles, colTitles;
+            rowTitles = new string[verticalGrids.Count-1];
+            colTitles = new string[horizontalGrids.Count-1];
+            Rectangle rect = Rectangle.Empty;
+            rect.Width = rowTitleWidth;
+            rect.X = rowTitleXStart;
+            Graphics g = Graphics.FromImage(grayImage);
+
+            for( int r = 0; r < verticalGrids.Count-1; r++)
+            {
+                rect.Y = verticalGrids[r] - rowTitleYOffset;
+                rect.Height = verticalGrids[r + 1] - verticalGrids[r];
+                result = ocrReader.Read(grayImage, rect);
+ Bitmap b = grayImage.Clone(rect, grayImage.PixelFormat);
+                pictureBox1.Image = b;
+              result =  ocrReader.Read(b);
+
+                rowTitles[r] = result.Text;
+                g.DrawRectangle(Pens.Blue, rect);
+                break;
+            }
+
+            
+
+            rect.Height = colTitleHeight;
+            rect.Y = colTitleYStart;
+            for( int c = 0; c < horizontalGrids.Count-1; c++ )
+            {
+                rect.X = horizontalGrids[c];
+                rect.Width = horizontalGrids[c + 1] - horizontalGrids[c];
+                result = ocrReader.Read(grayImage, rect);
+                colTitles[c] = result.Text;
+                g.DrawRectangle(Pens.Blue, rect);
+            }
+            g.Dispose();
+        }
+
         int verticalOffset, verticalInterval, verticalCount;
         int verticalHeader, horizontalHeader, verticalHeader2, horizontalHeader2;
 
