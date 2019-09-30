@@ -53,6 +53,238 @@ namespace ImageAISolver
             }
         }
 
+        void CenterBasedAdjustRectangle( ref Rectangle rect )
+        {
+            // 取得變化量
+            float last = 0;
+            float sum = (rect.Width * 255);
+            int continuousLimit = 4;
+            float verticalLimit = 0;
+
+            if (rect.Height <= continuousLimit || rect.Width <= continuousLimit) return;
+
+            for (int c = 0; c < rect.Width; c++) last += dataImage[rect.Y, rect.X + c];
+            for (int r = 1; r < rect.Height - 1; r++)
+            {
+                float total = 0;
+                for (int c = 0; c < rect.Width; c++) total += dataImage[rect.Y + r, rect.X + c];
+                rowDifferences[r - 1] = Math.Abs(total - last) / sum;
+                last = total;
+            }
+
+            sum = rect.Height * 255;
+            last = 0;
+            for (int r = 0; r < rect.Height; r++) last += dataImage[rect.Y + r, rect.X];
+            for (int c = 1; c < rect.Width - 1; c++)
+            {
+                float total = 0;
+                for (int r = 0; r < rect.Height; r++) total += dataImage[rect.Y + r, rect.X + c];
+                colDifferences[c - 1] = Math.Abs(total - last) / sum;
+                last = total;
+            }
+
+
+            for( int r = 0; r < continuousLimit; r ++ )
+                verticalLimit += rowDifferences[r+ (rect.Height -continuousLimit ) / 2];
+            verticalLimit /= continuousLimit * 10;
+            float horizontalLimit = 0;
+            for (int c = 0; c < continuousLimit; c++)
+                horizontalLimit += colDifferences[c + (rect.Width - continuousLimit) / 2];
+            horizontalLimit /= continuousLimit * 10;
+
+            //verticalLimit =   0.00001f;
+            //horizontalLimit = 0.00001f;
+            verticalLimit = 0;
+            horizontalLimit = 0;
+
+
+            int continuousCount;
+            int up = rect.Height / 2;
+            int down = up + 1;
+            int ll = rect.Width / 2;
+            int rr = ll + 1;
+            //top
+            continuousCount = -1;
+            for ( int r = up; r >= 0; r--)
+            {
+                if( rowDifferences[r] <= verticalLimit)
+                {
+                    if (continuousCount < 0)
+                    {
+                        up = r;
+                        continuousCount = 1;
+                    }
+                    else
+                    {
+                        continuousCount++;
+                        if (continuousCount >= continuousLimit)
+                            break;
+                    }
+                }
+                else
+                {
+                    continuousCount = -1;
+                    up = 0;
+                }
+            }
+            //bottom
+            continuousCount = -1;
+            for (int r = down; r <rect.Height; r++)
+            {
+                if (rowDifferences[r] <= verticalLimit)
+                {
+                    if (continuousCount < 0)
+                    {
+                        down = r;
+                        continuousCount = 1;
+                    }
+                    else
+                    {
+                        continuousCount++;
+                        if (continuousCount >= continuousLimit)
+                            break;
+                    }
+                }
+                else
+                {
+                    continuousCount = -1;
+                    down = rect.Height - 1;
+                }
+            }
+
+            //left
+            continuousCount = -1;
+            for (int c = ll; c >= 0; c--)
+            {
+                if (colDifferences[c] <= horizontalLimit)
+                {
+                    if (continuousCount < 0)
+                    {
+                        ll = c;
+                        continuousCount = 1;
+                    }
+                    else
+                    {
+                        continuousCount++;
+                        if (continuousCount >= continuousLimit)
+                            break;
+                    }
+                }
+                else
+                {
+                    continuousCount = -1;
+                    ll = 0;
+                }
+            }
+            //right
+            continuousCount = -1;
+            for (int c = rr; c < rect.Width; c++)
+            {
+                if (colDifferences[c] <= horizontalLimit)
+                {
+                    if (continuousCount < 0)
+                    {
+                        rr = c;
+                        continuousCount = 1;
+                    }
+                    else
+                    {
+                        continuousCount++;
+                        if (continuousCount >= continuousLimit)
+                            break;
+                    }
+                }
+                else
+                {
+                    continuousCount = -1;
+                    rr = rect.Width - 1;
+                }
+            }
+
+
+            rect.X += ll;// (int)leftOff;
+            rect.Width = rr - ll; // ll + rr;// (int)(leftOff + rightOff);
+            rect.Y += up; // (int)topOff;
+            rect.Height = down - up; // up + down; // (int)(topOff + bottomOff);
+            
+        }
+
+
+        // Boundary zero out
+        void ZeroBoundAdjustRectangle( ref Rectangle rect )
+        {
+            // 取得變化量
+            float last = 0;
+            float sum = (rect.Width * 255);
+            for (int c = 0; c < rect.Width; c++) last += dataImage[rect.Y, rect.X + c];
+            for (int r = 1; r < rect.Height - 1; r++)
+            {
+                float total = 0;
+                for (int c = 0; c < rect.Width; c++) total += dataImage[rect.Y + r, rect.X + c];
+                rowDifferences[r - 1] = Math.Abs(total - last) / sum;
+                last = total;
+            }
+
+            sum = rect.Height * 255;
+            last = 0;
+            for (int r = 0; r < rect.Height; r++) last += dataImage[rect.Y + r, rect.X];
+            for (int c = 1; c < rect.Width - 1; c++)
+            {
+                float total = 0;
+                for (int r = 0; r < rect.Height; r++) total += dataImage[rect.Y + r, rect.X + c];
+                colDifferences[c - 1] = Math.Abs(total - last) / sum;
+                last = total;
+            }
+
+
+            int zeroCount = 0;
+            int zeroLimit = 3;
+            bool enabled = false;
+            int topOff = 0, bottomOff = 0, leftOff = 0, rightOff = 0;
+            // top
+            for (int r = 0; r < rect.Height - 1; r++)
+            {
+                if (rowDifferences[r] > 0)
+                {
+                    topOff = r;
+                    break;
+                }
+            }
+            // bottom
+            for (int r = rect.Height - 2; r >= 0; r--)
+            {
+                if (rowDifferences[r] > 0 )
+                {
+                    bottomOff = r;
+                    break;
+                }
+            }
+            // left
+            for (int c = 0; c < rect.Width - 1; c++)
+            {
+                if (colDifferences[c] > 0)
+                {
+                    leftOff = c;
+                    break;
+                }
+            }
+            // right
+            for (int c = rect.Width - 2; c >= 0; c--)
+            {
+                if (colDifferences[c] > 0)
+                {
+                    rightOff = c;
+                    break;
+                }
+            }
+            rect.X += (int)leftOff;
+            rect.Width =  rightOff - leftOff +1;
+            rect.Y += (int)topOff;
+            rect.Height =　bottomOff - topOff + 1;
+        }
+
+
+
         void AdjustRectangle( ref Rectangle rect )
         {
             // 取得變化量
@@ -1545,7 +1777,11 @@ namespace ImageAISolver
                 rect.Y = verticalGrids[r] - rowTitleYOffset;
                 rect.Height = verticalGrids[r + 1] - verticalGrids[r];
 
-                AdjustRectangle(ref rect);
+                pictureBox2.Image = grayImage.Clone(rect, grayImage.PixelFormat);
+                // AdjustRectangle(ref rect);
+                //CenterBasedAdjustRectangle(ref rect);
+
+                ZeroBoundAdjustRectangle(ref rect);
 
                 if (rect.Width != 0 && rect.Height != 0)
                 {
@@ -1559,7 +1795,7 @@ namespace ImageAISolver
                 g.DrawRectangle(Pens.Blue, rect);
                 labMessage.Text += $" \"{result.Text}\"";
 
-              // if( r== 4)  break;
+               // if( r == 1 )    break;
             }
 
             labMessage.Text += "  column Headers:  ";
@@ -1571,7 +1807,9 @@ namespace ImageAISolver
                 rect.X = horizontalGrids[c];
                 rect.Width = horizontalGrids[c + 1] - horizontalGrids[c];
 
-                AdjustRectangle(ref rect);
+                // CenterBasedAdjustRectangle(ref rect);
+                // AdjustRectangle(ref rect);
+                ZeroBoundAdjustRectangle(ref rect);
 
                 result = ocrReader.Read(grayImage, rect);
                 colTitles[c] = result.Text;
