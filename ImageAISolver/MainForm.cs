@@ -53,7 +53,7 @@ namespace ImageAISolver
             }
         }
 
-        void AdjustRectangle(ref Rectangle rect)
+        void AdjustRectangle( ref Rectangle rect )
         {
             // 取得變化量
             float last = 0;
@@ -1539,7 +1539,11 @@ namespace ImageAISolver
                 rect.Y = verticalGrids[r] - rowTitleYOffset;
                 rect.Height = verticalGrids[r + 1] - verticalGrids[r];
 
-                AdjustRectangle(ref rect);
+                pictureBox2.Image = grayImage.Clone(rect, grayImage.PixelFormat);
+                // AdjustRectangle(ref rect);
+                //CenterBasedAdjustRectangle(ref rect);
+
+                ZeroBoundAdjustRectangle(ref rect);
 
                 if (rect.Width != 0 && rect.Height != 0)
                 {
@@ -1553,7 +1557,7 @@ namespace ImageAISolver
                 g.DrawRectangle(Pens.Blue, rect);
                 labMessage.Text += $" \"{result.Text}\"";
 
-                // if( r== 4)  break;
+              // if( r== 4)  break;
             }
 
             labMessage.Text += "  column Headers:  ";
@@ -1565,7 +1569,9 @@ namespace ImageAISolver
                 rect.X = horizontalGrids[c];
                 rect.Width = horizontalGrids[c + 1] - horizontalGrids[c];
 
-                AdjustRectangle(ref rect);
+                // CenterBasedAdjustRectangle(ref rect);
+                // AdjustRectangle(ref rect);
+                ZeroBoundAdjustRectangle(ref rect);
 
                 result = ocrReader.Read(grayImage, rect);
                 colTitles[c] = result.Text;
