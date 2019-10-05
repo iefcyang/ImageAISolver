@@ -35,7 +35,7 @@ namespace ImageAISolver
 
         private void BtnOpen_Click(object sender, EventArgs e)
         {
-            if( dlgOpen.ShowDialog() == DialogResult.OK     )
+            if (dlgOpen.ShowDialog() == DialogResult.OK)
             {
                 isDouble = false;
                 Cursor = Cursors.WaitCursor;
@@ -53,24 +53,24 @@ namespace ImageAISolver
             }
         }
 
-        void AdjustRectangle( ref Rectangle rect )
+        void AdjustRectangle(ref Rectangle rect)
         {
             // 取得變化量
             float last = 0;
             float sum = (rect.Width * 255);
 
-            for (int c = 0; c < rect.Width; c++) last += dataImage[rect.Y, rect.X + c];            
-            for ( int r = 1; r < rect.Height-1; r++)
+            for (int c = 0; c < rect.Width; c++) last += dataImage[rect.Y, rect.X + c];
+            for (int r = 1; r < rect.Height - 1; r++)
             {
-                float total = 0; 
-                for (int c = 0; c < rect.Width; c++) total += dataImage[rect.Y + r, rect.X + c] ;
+                float total = 0;
+                for (int c = 0; c < rect.Width; c++) total += dataImage[rect.Y + r, rect.X + c];
                 rowDifferences[r - 1] = Math.Abs(total - last) / sum;
                 last = total;
             }
 
             sum = rect.Height * 255;
             last = 0;
-            for (int r= 0; r < rect.Height; r++) last += dataImage[rect.Y + r, rect.X];
+            for (int r = 0; r < rect.Height; r++) last += dataImage[rect.Y + r, rect.X];
             for (int c = 1; c < rect.Width - 1; c++)
             {
                 float total = 0;
@@ -79,22 +79,22 @@ namespace ImageAISolver
                 last = total;
             }
             float limit = 0.000001f; // 0.001f;
-            int topOff = 0, bottomOff=0, leftOff=0, rightOff=0; 
+            int topOff = 0, bottomOff = 0, leftOff = 0, rightOff = 0;
             // top
-            for( int r = 0; r < rect.Height-1; r++)
+            for (int r = 0; r < rect.Height - 1; r++)
             {
-                if( rowDifferences[r] >= limit )
+                if (rowDifferences[r] >= limit)
                 {
                     topOff = r - 1;
                     break;
                 }
             }
             // bottom
-            for (int r = rect.Height - 2; r>=0; r--)
+            for (int r = rect.Height - 2; r >= 0; r--)
             {
                 if (rowDifferences[r] >= limit)
                 {
-                    bottomOff = rect.Height - ( r+1 );
+                    bottomOff = rect.Height - (r + 1);
                     break;
                 }
             }
@@ -116,7 +116,7 @@ namespace ImageAISolver
                     break;
                 }
             }
-            rect.X += (int) leftOff;
+            rect.X += (int)leftOff;
             rect.Width -= (int)(leftOff + rightOff);
             rect.Y += (int)topOff;
             rect.Height -= (int)(topOff + bottomOff);
@@ -142,7 +142,7 @@ namespace ImageAISolver
                 {
                     Color clr = colorImage.GetPixel(c, r);
                     int v = (clr.R + clr.G + clr.B) / 3;
-                    if( ckbBinary.Checked )
+                    if (ckbBinary.Checked)
                     {
                         if (v <= 127) v = 0;
                         else v = 255;
@@ -165,14 +165,14 @@ namespace ImageAISolver
             Point pe = Point.Empty;
             pe.X = horizontalGrids[horizontalGrids.Count - 1];// horizontalOffset + horizontalCount * horizontalInterval;
             int st = 0;
-            if( horizontalHeader < 0 && horizontalHeader2 < 0)
+            if (horizontalHeader < 0 && horizontalHeader2 < 0)
             {
                 st = 1;
                 ps.X = horizontalGrids[1];
             }
             // ps.Y = pe.Y = y;
             // g.DrawLine(Pens.Red, ps, pe);
-            for ( int i = st; i < verticalGrids.Count; i++ )// verticalCount; i++ )
+            for (int i = st; i < verticalGrids.Count; i++)// verticalCount; i++ )
             {
                 //y += verticalInterval;
                 ps.Y = pe.Y = verticalGrids[i];// y;
@@ -183,14 +183,14 @@ namespace ImageAISolver
             ps.Y = verticalGrids[0];// verticalOffset;
             pe.Y = verticalGrids[verticalGrids.Count - 1]; // verticalOffset + verticalInterval * verticalCount;
             int x = horizontalOffset;
-            if( verticalHeader < 0 && verticalHeader2 < 0 )
+            if (verticalHeader < 0 && verticalHeader2 < 0)
             {
                 ps.Y = verticalGrids[1];
                 st = 1;
             }
-           // ps.X = pe.X = x;
-           // g.DrawLine(Pens.Red, ps, pe);
-            for ( int i = st; i < horizontalGrids.Count; i++ )// horizontalCount; i++ )
+            // ps.X = pe.X = x;
+            // g.DrawLine(Pens.Red, ps, pe);
+            for (int i = st; i < horizontalGrids.Count; i++)// horizontalCount; i++ )
             {
                 //x += horizontalInterval;
                 ps.X = pe.X = horizontalGrids[i]; // x;
@@ -205,28 +205,28 @@ namespace ImageAISolver
             int headerLength = grayImage.Width / horizontalGrids.Count / 4;
             if (headerLength < 20) headerLength = 20; // at least 40 pixel
             if (isDouble) rowTitleYOffset = (verticalGrids[1] - verticalGrids[0]) / 2;
-            int ys = verticalGrids[0]-rowTitleYOffset;
-                int ye = verticalGrids[verticalGrids.Count - 1]-rowTitleYOffset;
+            int ys = verticalGrids[0] - rowTitleYOffset;
+            int ye = verticalGrids[verticalGrids.Count - 1] - rowTitleYOffset;
             int xe;
-            if( horizontalHeader < 0 && horizontalHeader2 < 0 )
+            if (horizontalHeader < 0 && horizontalHeader2 < 0)
             {
-                xe = ( horizontalGrids[0]+horizontalGrids[1])/2;
+                xe = (horizontalGrids[0] + horizontalGrids[1]) / 2;
                 st = 1;
-                ys = verticalGrids[1]-rowTitleYOffset;
+                ys = verticalGrids[1] - rowTitleYOffset;
             }
             else xe = horizontalHeader > 0 ? horizontalHeader : horizontalHeader2;
-            if( xe <= headerLength ) headerLength = (int)(xe * 0.8 );
+            if (xe <= headerLength) headerLength = (int)(xe * 0.8);
             xe = xe - headerLength;
             rowTitleXStart = xe;
-            rowTitleWidth = headerLength+ headerLength;
+            rowTitleWidth = headerLength + headerLength;
 
             g.DrawLine(Pens.Green, xe, ys, xe, ye); // vertical line
             int xs = xe;
             xe = xe + headerLength + headerLength;
             g.DrawLine(Pens.Green, xe, ys, xe, ye); // vertical line            
-            for( int i = st; i < verticalGrids.Count; i++ )
+            for (int i = st; i < verticalGrids.Count; i++)
             {
-                g.DrawLine(Pens.Green, xs, verticalGrids[i]-rowTitleYOffset, xe, verticalGrids[i]-rowTitleYOffset); // vertical line
+                g.DrawLine(Pens.Green, xs, verticalGrids[i] - rowTitleYOffset, xe, verticalGrids[i] - rowTitleYOffset); // vertical line
             }
 
             st = 0;
@@ -236,7 +236,7 @@ namespace ImageAISolver
             xe = horizontalGrids[horizontalGrids.Count - 1];
             if (verticalHeader < 0 && verticalHeader2 < 0)
             {
-                ye = (verticalGrids[0]+verticalGrids[1])/2;
+                ye = (verticalGrids[0] + verticalGrids[1]) / 2;
                 st = 1;
                 xs = horizontalGrids[1];
             }
@@ -256,7 +256,7 @@ namespace ImageAISolver
             g.DrawLine(Pens.Green, xs, ye, xe, ye); // vertical line            
             for (int i = st; i < horizontalGrids.Count; i++)
             {
-                g.DrawLine(Pens.Green, horizontalGrids[i],ys, horizontalGrids[i], ye); // vertical line
+                g.DrawLine(Pens.Green, horizontalGrids[i], ys, horizontalGrids[i], ye); // vertical line
             }
             g.Dispose();
 
@@ -266,11 +266,11 @@ namespace ImageAISolver
         int leftBound, rightBound, topBound, bottonBound;
         bool isFramed; // 是否有框
         float[] rowDifferences, colDifferences;
-            
+
         void GetGridInfo(bool alongHeight)
-        { 
+        {
             int seriesOffset = alongHeight ? 0 : 3;
-             
+
             chart1.Series[0 + seriesOffset].Points.Clear();
             chart1.Series[1 + seriesOffset].Points.Clear();
             chart1.Series[2 + seriesOffset].Points.Clear();
@@ -289,39 +289,39 @@ namespace ImageAISolver
                     delta = 0;
                     for (int c = 1; c < grayImage.Width; c++)
                     {
-                        delta += Math.Abs(dataImage[r, c] - dataImage[r, c-1]);
+                        delta += Math.Abs(dataImage[r, c] - dataImage[r, c - 1]);
                         total += dataImage[r, c];
                     }
                     total /= grayImage.Width; // 此列圖素值平均
                     //if (total < min) min = total;
 
-                    chart1.Series[0+seriesOffset].Points.AddXY(r,total);
-                    chart1.Series[1+seriesOffset].Points.AddXY(r+1,delta);
+                    chart1.Series[0 + seriesOffset].Points.AddXY(r, total);
+                    chart1.Series[1 + seriesOffset].Points.AddXY(r + 1, delta);
                 }
             }
             else
             {
                 for (int c = 0; c < grayImage.Width; c++)
                 {
-                    total = dataImage[ 0, c];
+                    total = dataImage[0, c];
                     delta = 0;
                     for (int r = 1; r < grayImage.Height; r++)
                     {
-                        delta += Math.Abs(dataImage[r,c ] - dataImage[r-1, c]);
-                        total += dataImage[ r, c];
+                        delta += Math.Abs(dataImage[r, c] - dataImage[r - 1, c]);
+                        total += dataImage[r, c];
                     }
                     total /= grayImage.Height;
-                    chart1.Series[0+seriesOffset].Points.AddXY(c,total);
-                    chart1.Series[1+seriesOffset].Points.AddXY(c+1,delta);
+                    chart1.Series[0 + seriesOffset].Points.AddXY(c, total);
+                    chart1.Series[1 + seriesOffset].Points.AddXY(c + 1, delta);
                 }
-             }
+            }
 
             float limit = alongHeight ? grayImage.Height / 55.0f : grayImage.Width / 55.0f;
             float now = alongHeight ? grayImage.Height / (float)chart1.Series[1 + seriesOffset].Points.Count :
                 grayImage.Width / (float)chart1.Series[1 + seriesOffset].Points.Count;
 
 
-            if ( now < limit )
+            if (now < limit)
             {
                 // 有雜訊，重設 divisors 添加雜訊去除
                 int dec = 10;
@@ -334,15 +334,15 @@ namespace ImageAISolver
                         y += chart1.Series[1 + seriesOffset].Points[i - j].YValues[0];
                     }
                     y /= dec;
-                    chart1.Series[1 + seriesOffset].Points[idx].XValue = 
-                        chart1.Series[1 + seriesOffset].Points[i - dec / 2].XValue ;
+                    chart1.Series[1 + seriesOffset].Points[idx].XValue =
+                        chart1.Series[1 + seriesOffset].Points[i - dec / 2].XValue;
                     chart1.Series[1 + seriesOffset].Points[idx].YValues[0] = y;
                     idx++;
                 }
                 for (int j = 0; j < dec / 2; j++)
                     chart1.Series[1 + seriesOffset].Points.RemoveAt(chart1.Series[1 + seriesOffset].Points.Count - 1);
             }
-            
+
 
             // 圖素差異線點數值
             DataPointCollection pts = chart1.Series[1 + seriesOffset].Points;
@@ -366,10 +366,10 @@ namespace ImageAISolver
                 }
             }
 
-            int zeroBound = (int) largest / 50;
+            int zeroBound = (int)largest / 50;
             // 找出標籤列或行，0開始0結尾，高度 largest/4 以上，寬 < 總寬 / 5，可能有兩個
             // 1: left, 2: left+right, 3: right, 4: interior
-            int heightLimit = (int)( largest / 8 );
+            int heightLimit = (int)(largest / 8);
             int widthLimit = (int)(alongHeight ? grayImage.Height / 6 : grayImage.Width / 6);
             int failedCount;
             double zs, ze, peeks, peeke;
@@ -377,7 +377,7 @@ namespace ImageAISolver
             bool verticalInMiddle = false;
             bool horizontalInMiddle = false;
 
-            if( alongHeight )
+            if (alongHeight)
             {
                 verticalHeader = -1;
                 verticalHeader2 = -1;
@@ -392,15 +392,15 @@ namespace ImageAISolver
             peeke = -1;
             peeks = -1;
             peekValue = 0;
-            for( int i = 0; i < pts.Count; i++)
+            for (int i = 0; i < pts.Count; i++)
             {
                 if (zs < 0)
                 {
                     if (peeks < 0)
                     {
                         // find first 0
-                        if (pts[i].YValues[0] <= zeroBound )
-                            zs =pts[i].XValue;
+                        if (pts[i].YValues[0] <= zeroBound)
+                            zs = pts[i].XValue;
                     }
                 }
                 else
@@ -414,36 +414,36 @@ namespace ImageAISolver
                     else
                     {
                         // find second 0
-                        if (pts[i].YValues[0] <= zeroBound )
+                        if (pts[i].YValues[0] <= zeroBound)
                         {
                             peeke = pts[i].XValue;
                             // find next non zero to set ze;
                             for (int j = i + 1; j < pts.Count; j++)
                             {
-                                if (pts[j].YValues[0] > zeroBound )
+                                if (pts[j].YValues[0] > zeroBound)
                                 {
                                     ze = pts[j].XValue;
                                     i = j;
                                     break;
                                 }
                             }
-                            if (ze < 0) ze = pts[ pts.Count - 1].XValue;
+                            if (ze < 0) ze = pts[pts.Count - 1].XValue;
                             // Get a signal check validity
                             if (peekValue > heightLimit && ze - zs < widthLimit)
                             {
                                 if (alongHeight)
                                 {
                                     if (verticalHeader < 0)
-                                        verticalHeader = (int)( (peeke + peeks) / 2);
+                                        verticalHeader = (int)((peeke + peeks) / 2);
                                     else
-                                        verticalHeader2 = (int)( (peeke + peeks) / 2);
+                                        verticalHeader2 = (int)((peeke + peeks) / 2);
                                 }
                                 else
                                 {
                                     if (horizontalHeader < 0)
-                                        horizontalHeader = (int)( (peeke + peeks) / 2);
+                                        horizontalHeader = (int)((peeke + peeks) / 2);
                                     else
-                                        horizontalHeader2 = (int)( (peeke + peeks) / 2);
+                                        horizontalHeader2 = (int)((peeke + peeks) / 2);
                                 }
                             }
                             else
@@ -460,7 +460,7 @@ namespace ImageAISolver
             }
 
             int voidS = pts.Count, voidE = 0;
-            int level = (int)( largest / 5 );
+            int level = (int)(largest / 5);
             if (failedCount > 3)
             {
                 if (alongHeight) verticalInMiddle = true;
@@ -553,28 +553,28 @@ namespace ImageAISolver
             //if (valleyBound > alt)
             //    valleyBound = alt;
 
-            valleyBound = (int)(smallest + (largest - smallest) /12);
+            valleyBound = (int)(smallest + (largest - smallest) / 12);
 
             //bool OK = true;
             //do
             //{
-                int centerStart = 0;
-            double localMin=0; double localValue = 0;
+            int centerStart = 0;
+            double localMin = 0; double localValue = 0;
 
             bool useLocal = true;
 
-                // 由中間或 voidE 往右找到不能是谷底的起始點    
-                int searchStart = voidE == 0 ? pts.Count / 2 : voidE;
-                for (int i = searchStart; i < pts.Count; i++)
+            // 由中間或 voidE 往右找到不能是谷底的起始點    
+            int searchStart = voidE == 0 ? pts.Count / 2 : voidE;
+            for (int i = searchStart; i < pts.Count; i++)
+            {
+                if (pts[i].YValues[0] <= valleyBound) continue;
+                else
                 {
-                    if (pts[i].YValues[0] <= valleyBound) continue;
-                    else
-                    {
-                        centerStart = i + 1;
-                        break;
-                    }
+                    centerStart = i + 1;
+                    break;
                 }
-                searchStart = centerStart; // 設定左邊開始搜尋的起點，避免遺漏中間的谷地
+            }
+            searchStart = centerStart; // 設定左邊開始搜尋的起點，避免遺漏中間的谷地
 
             double cliffDown = -1;
             zeroBound = (int)(valleyBound / 10);
@@ -703,9 +703,9 @@ namespace ImageAISolver
                     else
                     {
                         if (pts[i].YValues[0] < localValue ||
-                            ( pts[i].YValues[0] == localValue && rnd.Next() % 2 == 0 ))
+                            (pts[i].YValues[0] == localValue && rnd.Next() % 2 == 0))
                         {
-                            
+
                             localValue = pts[i].YValues[0];
                             localMin = pts[i].XValue;
                         }
@@ -716,18 +716,18 @@ namespace ImageAISolver
             // 找到的原始分隔點加入線圖，y值設為0
 
 
-            
+
             #region reSampling
             //***** 再 sample 低點 方法
             // 找最大 和次大的Gap 存在時，提升 valleylvel 添加 divisors
             divisors.Sort();
-            int gapidx = 0, bigGap = divisors[1]-divisors[0];
+            int gapidx = 0, bigGap = divisors[1] - divisors[0];
             int secondidx = 0, secondGap = bigGap;
             double sum = bigGap;
-            for( int c = 2; c < divisors.Count; c++)
+            for (int c = 2; c < divisors.Count; c++)
             {
                 int d = divisors[c] - divisors[c - 1];
-                if (d > secondGap )
+                if (d > secondGap)
                 {
                     if (d > bigGap)
                     {
@@ -743,7 +743,7 @@ namespace ImageAISolver
                 else sum += d;
             }
             sum /= divisors.Count - 3;
-            if( bigGap > sum + sum )
+            if (bigGap > sum + sum)
             {
                 // 添加 
                 // 提高門檻已納入更多分隔點
@@ -802,7 +802,7 @@ namespace ImageAISolver
                             else
                                 divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
 
-                           // divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
+                            // divisors.Add((int)((cliffDown + pts[i].XValue) / 2));
                             cliffDown = -1;
                             if (pts[i].YValues[0] < zeroBound) break;//提早結束
                         }
@@ -821,7 +821,7 @@ namespace ImageAISolver
 
                 }
             }
-            if (secondGap > sum * 3 /2)
+            if (secondGap > sum * 3 / 2)
             {
                 // 提高門檻已納入更多分隔點
                 valleyBound = (int)(smallest + (largest - smallest) / 2);
@@ -990,21 +990,21 @@ namespace ImageAISolver
             toosmall = alongHeight ? grayImage.Height / size : grayImage.Width / size;
 
             int ccc = 0;
-            for( int i = divisors.Count -1; i > 0; i--)
+            for (int i = divisors.Count - 1; i > 0; i--)
             {
-                if( ( divisors[i]-divisors[i-1] ) < toosmall )
+                if ((divisors[i] - divisors[i - 1]) < toosmall)
                 {
-                    int ii = i-1;
+                    int ii = i - 1;
                     ccc = 1;
-                    while(  ii-1 >= 0 && divisors[ii] - divisors[ii-1] < toosmall )
+                    while (ii - 1 >= 0 && divisors[ii] - divisors[ii - 1] < toosmall)
                     {
                         ccc++;
                         ii = ii - 1;
                     }
                     float newloc = divisors[i];
                     for (int j = 0; j < ccc; j++)
-                        newloc+= divisors[i - j - 1];
-                    divisors[i] = (int)Math.Round( newloc / (ccc + 1));
+                        newloc += divisors[i - j - 1];
+                    divisors[i] = (int)Math.Round(newloc / (ccc + 1));
                     //刪減雜訊分隔點
                     for (int j = 0; j < ccc; j++)
                         divisors.RemoveAt(i - j - 1);
@@ -1056,7 +1056,7 @@ namespace ImageAISolver
             //}
             //possibleInterval = vu[mid];
 
-            
+
             //for (int i = 2; i < divisors.Count; i++)
             //{
             //    int pre = divisors[i - 1] - divisors[i - 2];
@@ -1088,25 +1088,25 @@ namespace ImageAISolver
             List<int> intervals = new List<int>();
             List<float> sections = new List<float>();
             List<int> counts = new List<int>();
-           // int l = divisors[1];
+            // int l = divisors[1];
             // 忽略前後兩個 bounds
             if (divisors.Count <= 2) return;
-            for( int i = 2; i < divisors.Count-1;i++)
-                intervals.Add(divisors[i] - divisors[i-1]);
- 
+            for (int i = 2; i < divisors.Count - 1; i++)
+                intervals.Add(divisors[i] - divisors[i - 1]);
+
             // 排除頭尾兩個，保留中間的 intervals
             intervals.Sort();
 
             sections.Add(intervals[0]);
             // l = intervals[0];
             float num = 4;
-            float ttt = (float) intervals[0] / num; // tolerance
+            float ttt = (float)intervals[0] / num; // tolerance
             counts.Add(1);
             int id = 0;
-            for( int i = 1; i < intervals.Count-1; i++ )
+            for (int i = 1; i < intervals.Count - 1; i++)
             {
                 // 接續的是否差異太大
-                if( Math.Abs( intervals[i] - intervals[i-1]) < ttt )
+                if (Math.Abs(intervals[i] - intervals[i - 1]) < ttt)
                 {
                     // 歸屬在此interval，更新成平均值
                     sections[id] = (counts[id] * sections[id] + intervals[i]) / (counts[id] + 1);
@@ -1122,15 +1122,15 @@ namespace ImageAISolver
                     ttt = (float)intervals[i] / num;
                     id++;
                 }
-               // l = intervals[i];
+                // l = intervals[i];
             }
-            while( sections.Count > 2 )
+            while (sections.Count > 2)
             {
                 // 刪掉個數最少者
                 int small = counts[0];
                 int idx = 0;
-                for(int i = 1; i < counts.Count;i++)
-                    if( counts[i] <= small )
+                for (int i = 1; i < counts.Count; i++)
+                    if (counts[i] <= small)
                     {
                         idx = i;
                         small = counts[i];
@@ -1140,11 +1140,11 @@ namespace ImageAISolver
             }
 
             //如果剩下兩個，個數懸殊，刪除個數小者
-            if( sections.Count == 2)
+            if (sections.Count == 2)
             {
-                if( counts[0] > counts[1]  )
+                if (counts[0] > counts[1])
                 {
-                    if( counts[0]-counts[1] > counts[1])
+                    if (counts[0] - counts[1] > counts[1])
                     {
                         sections.RemoveAt(1);
                         counts.RemoveAt(1);
@@ -1191,8 +1191,8 @@ namespace ImageAISolver
                 // 2019  ***
                 for (int i = 1; i < divisors.Count - 1; i++)
                 {
-                    
-                    divisors[i] = (divisors[i] +lll) / 2;
+
+                    divisors[i] = (divisors[i] + lll) / 2;
                     lll = divisors[i + 1];
                     divisors.RemoveAt(i + 1);
                 }
@@ -1202,27 +1202,27 @@ namespace ImageAISolver
 
 
             }
-             
+
             int startEnd;
             if (alongHeight) startEnd = verticalHeader >= 0 ? verticalHeader : 0;
-            else startEnd = horizontalHeader >= 0 ? (  !horizontalInMiddle ? horizontalHeader : 0 ) : 0;
+            else startEnd = horizontalHeader >= 0 ? (!horizontalInMiddle ? horizontalHeader : 0) : 0;
             while (ssss < startEnd) ssss += trueSection;
             while ((ssss - trueSection) > startEnd) ssss = ssss - trueSection;
-             
+
 
             //int ssss = sections.Count == 2 ?  (int)Math.Round( (divisors[2]+divisors[3])/2.0 - trueSection ): divisors[1]-trueSection;
             double thresh = largest / 100;
             if (alongHeight)
             {
                 verticalOffset = ssss;
-                
+
                 verticalInterval = trueSection;
                 verticalCount = -1;
                 // ssss 之前是否有 索引
 
                 // 上有索引，找出索引 
                 int ps = -1;
-      
+
                 // Add header points
                 DataPoint dp;
 
@@ -1251,7 +1251,7 @@ namespace ImageAISolver
                 horizontalInterval = trueSection;
                 horizontalCount = -1;
                 int ps = -1;
- 
+
                 DataPoint dp;
                 if (horizontalHeader >= 0)
                 {
@@ -1277,8 +1277,8 @@ namespace ImageAISolver
 
             // 微調 truesection: 頭尾兩 divisors 整除 接近的整數
 
-                double dis = (double)(divisors[divisors.Count - 1] - divisors[0]);
-                int n = (int)( dis / trueSection);
+            double dis = (double)(divisors[divisors.Count - 1] - divisors[0]);
+            int n = (int)(dis / trueSection);
             int nin = (int)(Math.Round(dis / trueSection));
             if (nin == n)
             {
@@ -1333,8 +1333,8 @@ namespace ImageAISolver
                         //dp.MarkerStyle = MarkerStyle.Triangle;
                         //chart1.Series[2 + seriesOffset].Points.Add(dp);
                         verticalGrids.Add(i);
-                         i = i + trueSection;
-                       verticalCount++;
+                        i = i + trueSection;
+                        verticalCount++;
                     }
                 }
                 verticalGrids.Sort();
@@ -1342,23 +1342,23 @@ namespace ImageAISolver
                 // 微調，
                 if (sections.Count == 1)
                 {
-                    for (int v = 0; v< verticalGrids.Count; v++)
+                    for (int v = 0; v < verticalGrids.Count; v++)
                     {
                         int closePoint = -1, closeValue = int.MaxValue;
-                        for(int a = 0; a < divisors.Count; a++)
+                        for (int a = 0; a < divisors.Count; a++)
                         {
-                            int delt = Math.Abs(verticalGrids[ v] - divisors[ a] );
-                            if(delt < closeValue)
+                            int delt = Math.Abs(verticalGrids[v] - divisors[a]);
+                            if (delt < closeValue)
                             {
                                 closeValue = delt;
                                 closePoint = divisors[a];
                             }
                         }
-                        if (closeValue < trueSection * 0.6 ) // * 3.0 / 8.0)
+                        if (closeValue < trueSection * 0.6) // * 3.0 / 8.0)
                             verticalGrids[v] = closePoint;
                         else
                         {
-                            if( v>1 &&  verticalGrids[v]-verticalGrids[v-1] < (verticalGrids[v-1] - verticalGrids[v - 2]) * 0.9 )
+                            if (v > 1 && verticalGrids[v] - verticalGrids[v - 1] < (verticalGrids[v - 1] - verticalGrids[v - 2]) * 0.9)
                             {
                                 verticalGrids.RemoveAt(v);
                                 v++;
@@ -1370,8 +1370,8 @@ namespace ImageAISolver
                 {
                     for (int v = 0; v < verticalGrids.Count; v++)
                     {
-                        int closePoint=0, closeValue = int.MaxValue;
-                        for(int a = 1; a < divisors.Count; a++)
+                        int closePoint = 0, closeValue = int.MaxValue;
+                        for (int a = 1; a < divisors.Count; a++)
                         {
                             int pt = (divisors[a] + divisors[a - 1]) / 2;
                             int delt = Math.Abs(verticalGrids[v] - pt);
@@ -1381,7 +1381,7 @@ namespace ImageAISolver
                                 closePoint = pt;
                             }
                         }
-                        if (closeValue < trueSection * 0.5  && v > 1 ? (closePoint - verticalGrids[v - 1] < 1.2 * (verticalGrids[v - 1] - verticalGrids[v - 2])) : true)
+                        if (closeValue < trueSection * 0.5 && v > 1 ? (closePoint - verticalGrids[v - 1] < 1.2 * (verticalGrids[v - 1] - verticalGrids[v - 2])) : true)
                             verticalGrids[v] = closePoint;
                     }
                 }
@@ -1428,8 +1428,8 @@ namespace ImageAISolver
                         //dp.MarkerStyle = MarkerStyle.Triangle;
                         //chart1.Series[2 + seriesOffset].Points.Add(dp);
                         horizontalGrids.Add(i);
-                         i = i - trueSection;
-                       horizontalCount++;
+                        i = i - trueSection;
+                        horizontalCount++;
                     }
 
                 }
@@ -1456,7 +1456,7 @@ namespace ImageAISolver
                     for (int v = 0; v < horizontalGrids.Count; v++)
                     {
                         int closePoint = 0, closeValue = int.MaxValue;
-                        for(int a =0; a < divisors.Count; a++ )
+                        for (int a = 0; a < divisors.Count; a++)
                         {
                             int delt = Math.Abs(horizontalGrids[v] - divisors[a]);
                             if (delt < closeValue)
@@ -1465,7 +1465,7 @@ namespace ImageAISolver
                                 closePoint = divisors[a];
                             }
                         }
-                        if (closeValue < trueSection * 0.6 ) // 3.0 / 8.0 )
+                        if (closeValue < trueSection * 0.6) // 3.0 / 8.0 )
                             horizontalGrids[v] = closePoint;
                         else
                         {
@@ -1492,13 +1492,13 @@ namespace ImageAISolver
                                 closePoint = pt;
                             }
                         }
-                        if (closeValue < trueSection * 0.5  && v > 1 ? ( closePoint-horizontalGrids[v-1] < 1.2 * (horizontalGrids[v-1 ]- horizontalGrids[v - 2]) ) : true ) 
+                        if (closeValue < trueSection * 0.5 && v > 1 ? (closePoint - horizontalGrids[v - 1] < 1.2 * (horizontalGrids[v - 1] - horizontalGrids[v - 2])) : true)
                             horizontalGrids[v] = closePoint;
                     }
                 }
 
                 // add points
-                foreach( int pt in horizontalGrids)
+                foreach (int pt in horizontalGrids)
                 {
                     DataPoint dp = new DataPoint();
                     dp.XValue = pt;
@@ -1509,12 +1509,6 @@ namespace ImageAISolver
                 }
 
             }
-
-            
-
-
-
-
 
 
         }
@@ -1532,15 +1526,15 @@ namespace ImageAISolver
         {
             OcrResult result;
             string[] rowTitles, colTitles;
-            rowTitles = new string[verticalGrids.Count-1];
-            colTitles = new string[horizontalGrids.Count-1];
+            rowTitles = new string[verticalGrids.Count - 1];
+            colTitles = new string[horizontalGrids.Count - 1];
             Rectangle rect = Rectangle.Empty;
             rect.Width = rowTitleWidth;
             rect.X = rowTitleXStart;
             Graphics g = Graphics.FromImage(grayImage);
 
             labMessage.Text = "row headers:  ";
-            for( int r = 0; r < verticalGrids.Count-1; r++)
+            for (int r = 0; r < verticalGrids.Count - 1; r++)
             {
                 rect.Y = verticalGrids[r] - rowTitleYOffset;
                 rect.Height = verticalGrids[r + 1] - verticalGrids[r];
@@ -1559,14 +1553,14 @@ namespace ImageAISolver
                 g.DrawRectangle(Pens.Blue, rect);
                 labMessage.Text += $" \"{result.Text}\"";
 
-              // if( r== 4)  break;
+                // if( r== 4)  break;
             }
 
             labMessage.Text += "  column Headers:  ";
 
             rect.Height = colTitleHeight;
             rect.Y = colTitleYStart;
-            for( int c = 0; c < horizontalGrids.Count-1; c++ )
+            for (int c = 0; c < horizontalGrids.Count - 1; c++)
             {
                 rect.X = horizontalGrids[c];
                 rect.Width = horizontalGrids[c + 1] - horizontalGrids[c];
@@ -1595,26 +1589,26 @@ namespace ImageAISolver
             int vStart = 3 * vSize / 2;
             byte vv;
             bool OK = false;
-            for(  hcount = 5; hcount < 20; hcount++)
+            for (hcount = 5; hcount < 20; hcount++)
             {
                 byte v;
                 hSize = colorImage.Width / hcount;
                 int start = hSize * 3 / 2;
                 int end = start + hSize;
-                int x =  start;
+                int x = start;
                 int y = vStart;
-               for( hOff = start; hOff < end; hOff ++ )
+                for (hOff = start; hOff < end; hOff++)
                 {
                     OK = true;
                     v = grayImage.GetPixel(x, y).R;
-                    for( int c = 0; c < hcount-1; c++ )
+                    for (int c = 0; c < hcount - 1; c++)
                     {
-                         x = c * hSize + hOff;
-                        for( int r = 0; r < 19; r ++ )
+                        x = c * hSize + hOff;
+                        for (int r = 0; r < 19; r++)
                         {
-                             y = vStart + vSize * r;
+                            y = vStart + vSize * r;
                             vv = grayImage.GetPixel(x, y).R;
-                            if( vv - v > tol && v - vv > tol )
+                            if (vv - v > tol && v - vv > tol)
                             {
                                 OK = false;
                                 break;
