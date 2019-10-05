@@ -59,7 +59,7 @@ namespace ImageAISolver
         //Override multiplication operator 
         public static Complex operator *(Complex a, Complex b)
         {
-            Complex data = new Complex((a.real * b.real) - (a.imag * b.imag), (a.real * b.imag + (a.imag * b.real));
+            Complex data = new Complex((a.real * b.real) - (a.imag * b.imag), (a.real * b.imag + (a.imag * b.real)));
             return data;
         }
 
