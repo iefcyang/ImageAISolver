@@ -424,11 +424,11 @@ namespace ImageAISolver
                         if (v <= 127) v = 0;
                         else v = 255;
                     }
-                    else
-                    {
-                        if (v < 10) v = 0;
-                        else if (v > 245) v = 255;
-                    }
+                    //else
+                    //{
+                    //    if (v < 5) v = 0;
+                    //    else if (v > 240) v = 255;
+                    //}
                     dataImage[r, c] =  v;
 
                     grayImage.SetPixel(c, r, Color.FromArgb(v, v, v));
@@ -1966,10 +1966,10 @@ namespace ImageAISolver
                     rect.X = horizontalGrids[c];
                     rect.Width = horizontalGrids[c + 1] - rect.X;
                     reduced = rect;
-                    ZeroBoundAdjustRectangle(ref reduced);
+                  //   ZeroBoundAdjustRectangle(ref reduced);
                    // CenterBasedAdjustRectangle(ref reduced);
 
-                   // CenterExpandRectangle(ref reduced);
+                   CenterExpandRectangle(ref reduced);
                     if (reduced.Width <= 1 || reduced.Height <= 1) continue;
 
                     result =  ocrReader.Read(grayImage, reduced);
@@ -1999,33 +1999,51 @@ namespace ImageAISolver
 
             // correct ycenter 往上
 
-            for (int c = xs; c < xe; c++)
-                change += Math.Abs(dataImage[ycenter, c + 1] - dataImage[ycenter, c]);
-            if (change <= 0)
+            //for (int c = xs; c < xe; c++)
+            //    change += Math.Abs(dataImage[ycenter, c + 1] - dataImage[ycenter, c]);
+            //if (change <= 0)
+            //{
+            //    for (int d = 1; ; d++)
+            //    {
+            //        // up
+            //        change = 0;
+            //        for (int c = xs; c < xe; c++)
+            //            change += Math.Abs(dataImage[ycenter-d, c + 1] - dataImage[ycenter-d, c]);
+            //        if( change > 0)
+            //        {
+            //            ycenter = ycenter - d-rect.Height / 10;
+            //            break;
+            //        }
+            //        // down
+            //        change = 0;
+            //        for (int c = xs; c < xe; c++)
+            //            change += Math.Abs(dataImage[ycenter + d, c + 1] - dataImage[ycenter + d, c]);
+            //        if (change >  0)
+            //        {
+            //            ycenter = ycenter + d + rect.Height / 10;
+            //            break;
+            //        }
+            //    }
+            //}
+
+
+            // ycenter 取左右鄰近變動加總最大的y
+            float largest = 0, sum;
+            for( int r = rect.Y; r < rect.Y + rect.Height; r++)
             {
-                for (int d = 1; ; d++)
+                sum = 0;
+                for (int c = rect.X; c < rect.X + rect.Width-1; c++) sum += Math.Abs(dataImage[r, c+1] - dataImage[r, c]);
+                if( sum > largest)
                 {
-                    // up
-                    change = 0;
-                    for (int c = xs; c < xe; c++)
-                        change += Math.Abs(dataImage[ycenter-d, c + 1] - dataImage[ycenter-d, c]);
-                    if( change > 0)
-                    {
-                        ycenter = ycenter - d-rect.Height / 10;
-                        break;
-                    }
-                    // down
-                    change = 0;
-                    for (int c = xs; c < xe; c++)
-                        change += Math.Abs(dataImage[ycenter + d, c + 1] - dataImage[ycenter + d, c]);
-                    if (change >  0)
-                    {
-                        ycenter = ycenter + d + rect.Height / 10;
-                        break;
-                    }
+                    ycenter = r;
+                    largest = sum;
                 }
             }
 
+
+            int spaceLimit = 4; // rect.Height / 20;
+            int spaceCont = 0;
+            // 往上延伸
             int cnt = ( xe - xs ) * 255;
             int ytop=rect.Top, ybottom=rect.Bottom, xleft, xright;
             for (int r = ycenter - 1; r >= rect.Y; r--)
@@ -2037,13 +2055,37 @@ namespace ImageAISolver
                     total += Math.Abs(dataImage[r, c] - dataImage[r + 1, c]);
                     change += Math.Abs(dataImage[r, c] - dataImage[r, c + 1]);
                 }
+
                 //total /= cnt;
-                if (change <= 0 && total <= 0)
+                if (total <= 0 && change <= 0)
                 {
-                    ytop = r;
-                    break;
+                    if (spaceCont == 0)
+                    {
+                        spaceCont = 1;
+                    }
+                    else
+                    {
+                        spaceCont++;
+                        if (spaceCont >= spaceLimit)
+                        {
+                            ytop = r;
+                            break;
+                        }
+                    }
                 }
+                else spaceCont = 0;
+
+
+                //total /= cnt;
+                //if (change <= 0 && total <= 0)
+                //{
+                //    ytop = r;
+                //    break;
+                //}
             }
+
+            spaceCont = 0;
+            // 往下延伸
             for (int r = ycenter + 1; r < rect.Bottom; r++)
             {
                 total = 0;
@@ -2053,16 +2095,36 @@ namespace ImageAISolver
                     total += Math.Abs(dataImage[r, c] - dataImage[r-1, c]);
                     change += Math.Abs(dataImage[r, c] - dataImage[r, c + 1]);
                 }
+
                 //total /= cnt;
-                if (change <= 0 &&  total <= 0)
+                if (total <= 0 && change <= 0)
                 {
-                    ybottom = r;
-                    break;
+                    if (spaceCont == 0)
+                    {
+                        spaceCont = 1;
+                    }
+                    else
+                    {
+                        spaceCont++;
+                        if (spaceCont >= spaceLimit)
+                        {
+                            ybottom = r;
+                            break;
+                        }
+                    }
                 }
+                else spaceCont = 0;
+
+                //total /= cnt;
+                //if (change <= 0 &&  total <= 0)
+                //{
+                //    ybottom = r;
+                //    break;
+                //}
             }
-            int spaceLimit = (ybottom - ytop) / 8;
+            spaceLimit = (ybottom - ytop) / 8;
             xs = ( rect.Left + rect.Right )/ 2;
-            int spaceCont = 0;
+            spaceCont = 0;
             cnt = (ybottom - yup + 1 ) *255;
 
             xright = rect.Right;
