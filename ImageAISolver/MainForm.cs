@@ -37,6 +37,11 @@ namespace ImageAISolver
         {
             if (dlgOpen.ShowDialog() == DialogResult.OK)
             {
+                pcbImage.Image = null;
+                labMessage.Text = "";
+                pcbImage.Refresh();
+                statusStrip1.Refresh();
+
                 isDouble = false;
                 Cursor = Cursors.WaitCursor;
 
@@ -226,6 +231,9 @@ namespace ImageAISolver
                 float total = 0;
                 for (int c = 0; c < rect.Width; c++) total += dataImage[rect.Y + r, rect.X + c];
                 rowDifferences[r - 1] = Math.Abs(total - last) / sum;
+
+                if (rowDifferences[r - 1] > 0.5) rowDifferences[r - 1] = 0;
+
                 last = total;
             }
 
@@ -237,9 +245,14 @@ namespace ImageAISolver
                 float total = 0;
                 for (int r = 0; r < rect.Height; r++) total += dataImage[rect.Y + r, rect.X + c];
                 colDifferences[c - 1] = Math.Abs(total - last) / sum;
+
+                if (colDifferences[c - 1] > 0.5) colDifferences[c - 1] = 0;
+
+
                 last = total;
             }
 
+            float notRight = 0.7f;
 
             int zeroCount = 0;
             int zeroLimit = 3;
@@ -248,11 +261,14 @@ namespace ImageAISolver
             // top
             for (int r = 0; r < rect.Height - 1; r++)
             {
+                if (rowDifferences[r] > notRight) continue;
+
                 if (rowDifferences[r] > thresh)
                 {
                     if( r+2 < rect.Height - 1 )
                     {
-                        if (rowDifferences[r + 1] <= zero && rowDifferences[r + 2] <= zero) continue;
+                        if (rowDifferences[r + 1] > notRight) continue;
+                        if (rowDifferences[r] > 0.5 &&  rowDifferences[r + 1] <= zero && rowDifferences[r + 2] <= zero) continue;
                     }
                     topOff = r;
                     break;
@@ -261,11 +277,14 @@ namespace ImageAISolver
             // bottom
             for (int r = rect.Height - 2; r >= 0; r--)
             {
+                if (rowDifferences[r] > notRight) continue;
+
                 if (rowDifferences[r] > thresh)
                 {
                     if( r - 2 >= 0 )
                     {
-                        if (rowDifferences[r - 1] <= zero && rowDifferences[r - 2] <= zero) continue;
+                        if (rowDifferences[r - 1] > notRight) continue;
+                        if (rowDifferences[r] > 0.5 && rowDifferences[r - 1] <= zero && rowDifferences[r - 2] <= zero) continue;
                     }
                     bottomOff = r;
                     break;
@@ -274,11 +293,14 @@ namespace ImageAISolver
             // left
             for (int c = 0; c < rect.Width - 1; c++)
             {
+                if (colDifferences[c] > notRight) continue;
+
                 if (colDifferences[c] > thresh)
                 {
                     if( c+ 2 < rect.Width - 1 )
                     {
-                        if (colDifferences[c + 1] <= zero && colDifferences[c + 2] <= zero) continue;
+                        if (colDifferences[c + 1] > notRight) continue;
+                        if (colDifferences[c] > 0.5 && colDifferences[c + 1] <= zero && colDifferences[c + 2] <= zero) continue;
                     }
                     leftOff = c;
                     break;
@@ -287,11 +309,14 @@ namespace ImageAISolver
             // right
             for (int c = rect.Width - 2; c >= 0; c--)
             {
+                if (colDifferences[c] > notRight) continue;
+
                 if (colDifferences[c] > thresh)
                 {
                     if( c - 2 >= 0 )
                     {
-                        if (colDifferences[c - 1] <= zero && colDifferences[c - 2] <= zero) continue;
+                        if (colDifferences[c - 1] > notRight) continue;
+                        if (colDifferences[c] > 0.5 && colDifferences[c - 1] <= zero && colDifferences[c - 2] <= zero) continue;
                     }
                     rightOff = c;
                     break;
@@ -393,13 +418,19 @@ namespace ImageAISolver
                 for (int c = 0; c < grayImage.Width; c++)
                 {
                     Color clr = colorImage.GetPixel(c, r);
-                    int v = (clr.R + clr.G + clr.B) / 3;
+                    byte v = (byte)( (clr.R + clr.G + clr.B) / 3);
                     if (ckbBinary.Checked)
                     {
                         if (v <= 127) v = 0;
                         else v = 255;
                     }
-                    dataImage[r, c] = (byte)v;
+                    else
+                    {
+                        if (v < 10) v = 0;
+                        else if (v > 245) v = 255;
+                    }
+                    dataImage[r, c] =  v;
+
                     grayImage.SetPixel(c, r, Color.FromArgb(v, v, v));
                 }
             pcbImage.Image = grayImage;
@@ -1773,15 +1804,18 @@ namespace ImageAISolver
         int rowTitleXStart;
         int colTitleHeight;
         int colTitleYStart;
+        string[] rowTitles, colTitles;
 
         private void BtnOCR_Click(object sender, EventArgs e)
         {
+            labMessage.Text = "";
+            statusStrip1.Refresh();
             Cursor = Cursors.WaitCursor;
 
             OcrResult result;
             Rectangle reducedRect;
 
-            string[] rowTitles, colTitles;
+
             rowTitles = new string[verticalGrids.Count - 1];
             colTitles = new string[horizontalGrids.Count - 1];
             Rectangle rect = Rectangle.Empty;
@@ -1813,8 +1847,8 @@ namespace ImageAISolver
                 //}
 
                 result = ocrReader.Read(grayImage, reducedRect);
-
-                rowTitles[r] = result.Text;
+                
+                rowTitles[r] = result.Text.ToUpper();
                 g.DrawRectangle(Pens.Red, rect);
                 g.DrawRectangle(Pens.Blue, reducedRect);
                 labMessage.Text += $" \"{rowTitles[r]}\"";
@@ -1822,7 +1856,7 @@ namespace ImageAISolver
               // if( r== 4)  break;
             }
 
-            labMessage.Text += "  column Headers:  ";
+            labMessage.Text += "\ncolumn Headers:  ";
 
             rect.Height = colTitleHeight;
             rect.Y = colTitleYStart;
@@ -1908,8 +1942,197 @@ namespace ImageAISolver
             }
             pcbImage.Refresh();
             g.Dispose();
+
+            OCREachcell();
+
             Cursor = Cursors.Default;
         }
+        void OCREachcell()
+        {
+            lsbContents.Items.Clear();
+
+            Rectangle rect = Rectangle.Empty, reduced=Rectangle.Empty;
+            OcrResult result;
+            Graphics g = Graphics.FromImage(grayImage);
+
+            for( int r = 0; r < rowTitles.Length; r++  )
+            {
+                if (rowTitles[r] == "") continue;
+                rect.Y = verticalGrids[r];
+                rect.Height = verticalGrids[r + 1] - rect.Y;
+                for( int c = 0; c < colTitles.Length; c++ )
+                {
+                    if (colTitles[c] == "") continue;
+                    rect.X = horizontalGrids[c];
+                    rect.Width = horizontalGrids[c + 1] - rect.X;
+                    reduced = rect;
+                    ZeroBoundAdjustRectangle(ref reduced);
+                   // CenterBasedAdjustRectangle(ref reduced);
+
+                   // CenterExpandRectangle(ref reduced);
+                    if (reduced.Width <= 1 || reduced.Height <= 1) continue;
+
+                    result =  ocrReader.Read(grayImage, reduced);
+                    if( result.Text != "" )
+                    {
+                        // Get one cell
+                        g.DrawRectangle(Pens.Purple, rect);
+                        // Write to excel
+                        lsbContents.Items.Add( $"{rowTitles[r]}{colTitles[c]} <-> {result.Text}" );
+                    }
+                    g.DrawRectangle(Pens.Green, reduced);
+                }
+            }
+
+            g.Dispose();
+            pcbImage.Refresh();
+        }
+
+        void CenterExpandRectangle(ref Rectangle rect)
+        {
+            float total;
+            float change = 0;
+            int xs, xe, yup, ydown;
+            xs = rect.X + rect.Width / 3;
+            xe = xs + rect.Width / 3;
+            int ycenter =   yup = ydown = rect.Y + rect.Height / 2;
+
+            // correct ycenter 往上
+
+            for (int c = xs; c < xe; c++)
+                change += Math.Abs(dataImage[ycenter, c + 1] - dataImage[ycenter, c]);
+            if (change <= 0)
+            {
+                for (int d = 1; ; d++)
+                {
+                    // up
+                    change = 0;
+                    for (int c = xs; c < xe; c++)
+                        change += Math.Abs(dataImage[ycenter-d, c + 1] - dataImage[ycenter-d, c]);
+                    if( change > 0)
+                    {
+                        ycenter = ycenter - d-rect.Height / 10;
+                        break;
+                    }
+                    // down
+                    change = 0;
+                    for (int c = xs; c < xe; c++)
+                        change += Math.Abs(dataImage[ycenter + d, c + 1] - dataImage[ycenter + d, c]);
+                    if (change >  0)
+                    {
+                        ycenter = ycenter + d + rect.Height / 10;
+                        break;
+                    }
+                }
+            }
+
+            int cnt = ( xe - xs ) * 255;
+            int ytop=rect.Top, ybottom=rect.Bottom, xleft, xright;
+            for (int r = ycenter - 1; r >= rect.Y; r--)
+            {
+                total = 0;
+                change = 0;
+                for (int c = xs; c < xe; c++)
+                { 
+                    total += Math.Abs(dataImage[r, c] - dataImage[r + 1, c]);
+                    change += Math.Abs(dataImage[r, c] - dataImage[r, c + 1]);
+                }
+                //total /= cnt;
+                if (change <= 0 && total <= 0)
+                {
+                    ytop = r;
+                    break;
+                }
+            }
+            for (int r = ycenter + 1; r < rect.Bottom; r++)
+            {
+                total = 0;
+                change = 0;
+                for (int c = xs; c < xe; c++)
+                { 
+                    total += Math.Abs(dataImage[r, c] - dataImage[r-1, c]);
+                    change += Math.Abs(dataImage[r, c] - dataImage[r, c + 1]);
+                }
+                //total /= cnt;
+                if (change <= 0 &&  total <= 0)
+                {
+                    ybottom = r;
+                    break;
+                }
+            }
+            int spaceLimit = (ybottom - ytop) / 8;
+            xs = ( rect.Left + rect.Right )/ 2;
+            int spaceCont = 0;
+            cnt = (ybottom - yup + 1 ) *255;
+
+            xright = rect.Right;
+            for( int c = xs + 1; c < rect.Right; c++ )
+            {
+                total = 0;
+                change = 0;
+                for (int r = yup; r <= ybottom; r++)
+                {
+                    total += Math.Abs(dataImage[r, c] - dataImage[r, c - 1]);
+                    change += Math.Abs(dataImage[r, c] - dataImage[r+1, c ]);
+                }
+                //total /= cnt;
+                if (total <= 0 && change <= 0)
+                {
+                    if (spaceCont == 0)
+                    {
+                        spaceCont = 1;
+                    }
+                    else
+                    {
+                        spaceCont++;
+                        if( spaceCont >= spaceLimit )
+                        {
+                            xright = c;
+                            break;
+                        }
+                    }
+                }
+                else spaceCont = 0;
+            }
+
+
+            xleft = rect.Left;
+            spaceCont = 0;
+            for (int c = xs - 1; c >= rect.Left; c--)
+            {
+                total = 0;
+                change = 0;
+                for (int r = yup; r <= ybottom; r++)
+                {
+                    total += Math.Abs(dataImage[r, c] - dataImage[r, c + 1]);
+                    change += Math.Abs(dataImage[r, c] - dataImage[r + 1, c]);
+                }
+                    //total /= cnt;
+                if (total <= 0 && change <= 0)
+                {
+                    if (spaceCont == 0)
+                    {
+                        spaceCont = 1;
+                    }
+                    else
+                    {
+                        spaceCont++;
+                        if (spaceCont >= spaceLimit)
+                        {
+                            xleft = c;
+                            break;
+                        }
+                    }
+                }
+                else spaceCont = 0;
+            }
+
+            rect.X = xleft;
+            rect.Y = yup;
+            rect.Width = xright - xleft + 1;
+            rect.Height = ybottom - yup + 1;
+        }
+
 
         int verticalOffset, verticalInterval, verticalCount;
         int verticalHeader, horizontalHeader, verticalHeader2, horizontalHeader2;
