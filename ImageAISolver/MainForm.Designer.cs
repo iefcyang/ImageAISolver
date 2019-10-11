@@ -28,24 +28,27 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title1 = new System.Windows.Forms.DataVisualization.Charting.Title();
-            System.Windows.Forms.DataVisualization.Charting.Title title2 = new System.Windows.Forms.DataVisualization.Charting.Title();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series13 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series14 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series15 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series16 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series17 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series18 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Title title5 = new System.Windows.Forms.DataVisualization.Charting.Title();
+            System.Windows.Forms.DataVisualization.Charting.Title title6 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.pcbImage = new System.Windows.Forms.PictureBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.ckbLog = new System.Windows.Forms.CheckBox();
+            this.cbxSizeMode = new System.Windows.Forms.ComboBox();
+            this.lsbContents = new System.Windows.Forms.ListBox();
             this.btnShowImage = new System.Windows.Forms.Button();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
@@ -58,7 +61,6 @@
             this.dlgOpen = new System.Windows.Forms.OpenFileDialog();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.labMessage = new System.Windows.Forms.ToolStripStatusLabel();
-            this.lsbContents = new System.Windows.Forms.ListBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -85,6 +87,8 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.ckbLog);
+            this.splitContainer1.Panel2.Controls.Add(this.cbxSizeMode);
             this.splitContainer1.Panel2.Controls.Add(this.lsbContents);
             this.splitContainer1.Panel2.Controls.Add(this.btnShowImage);
             this.splitContainer1.Panel2.Controls.Add(this.pictureBox2);
@@ -143,91 +147,122 @@
             // 
             // chart1
             // 
-            chartArea1.AxisX.MajorGrid.LineColor = System.Drawing.Color.LightGray;
-            chartArea1.AxisY.MajorGrid.LineColor = System.Drawing.Color.LightGray;
-            chartArea1.AxisY2.MajorGrid.LineColor = System.Drawing.Color.LightGray;
-            chartArea1.Name = "ChartArea1";
-            chartArea2.AxisX.MajorGrid.LineColor = System.Drawing.Color.LightGray;
-            chartArea2.AxisX2.MajorGrid.LineColor = System.Drawing.Color.LightGray;
-            chartArea2.AxisY.MajorGrid.LineColor = System.Drawing.Color.LightGray;
-            chartArea2.AxisY2.MajorGrid.LineColor = System.Drawing.Color.LightGray;
-            chartArea2.Name = "ChartArea2";
-            this.chart1.ChartAreas.Add(chartArea1);
-            this.chart1.ChartAreas.Add(chartArea2);
+            chartArea5.AxisX.MajorGrid.LineColor = System.Drawing.Color.LightGray;
+            chartArea5.AxisY.MajorGrid.LineColor = System.Drawing.Color.LightGray;
+            chartArea5.AxisY2.MajorGrid.LineColor = System.Drawing.Color.LightGray;
+            chartArea5.Name = "ChartArea1";
+            chartArea6.AxisX.MajorGrid.LineColor = System.Drawing.Color.LightGray;
+            chartArea6.AxisX2.MajorGrid.LineColor = System.Drawing.Color.LightGray;
+            chartArea6.AxisY.MajorGrid.LineColor = System.Drawing.Color.LightGray;
+            chartArea6.AxisY2.MajorGrid.LineColor = System.Drawing.Color.LightGray;
+            chartArea6.Name = "ChartArea2";
+            this.chart1.ChartAreas.Add(chartArea5);
+            this.chart1.ChartAreas.Add(chartArea6);
             this.chart1.Dock = System.Windows.Forms.DockStyle.Fill;
-            legend1.Alignment = System.Drawing.StringAlignment.Center;
-            legend1.DockedToChartArea = "ChartArea1";
-            legend1.IsDockedInsideChartArea = false;
-            legend1.Name = "Legend1";
-            legend2.Alignment = System.Drawing.StringAlignment.Center;
-            legend2.DockedToChartArea = "ChartArea2";
-            legend2.IsDockedInsideChartArea = false;
-            legend2.Name = "Legend2";
-            this.chart1.Legends.Add(legend1);
-            this.chart1.Legends.Add(legend2);
+            legend5.Alignment = System.Drawing.StringAlignment.Center;
+            legend5.DockedToChartArea = "ChartArea1";
+            legend5.IsDockedInsideChartArea = false;
+            legend5.Name = "Legend1";
+            legend6.Alignment = System.Drawing.StringAlignment.Center;
+            legend6.DockedToChartArea = "ChartArea2";
+            legend6.IsDockedInsideChartArea = false;
+            legend6.Name = "Legend2";
+            this.chart1.Legends.Add(legend5);
+            this.chart1.Legends.Add(legend6);
             this.chart1.Location = new System.Drawing.Point(3, 3);
             this.chart1.Name = "chart1";
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Color = System.Drawing.Color.Red;
-            series1.Legend = "Legend1";
-            series1.LegendText = "Average";
-            series1.Name = "Series1";
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series2.Color = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            series2.Legend = "Legend1";
-            series2.LegendText = "Deviation Sum";
-            series2.Name = "Series2";
-            series2.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series3.Color = System.Drawing.Color.Blue;
-            series3.Legend = "Legend1";
-            series3.Name = "Series3";
-            series3.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
-            series4.ChartArea = "ChartArea2";
-            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series4.Color = System.Drawing.Color.Red;
-            series4.Legend = "Legend2";
-            series4.Name = "Series4";
-            series5.ChartArea = "ChartArea2";
-            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series5.Color = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            series5.Legend = "Legend2";
-            series5.Name = "Series5";
-            series5.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
-            series6.ChartArea = "ChartArea2";
-            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series6.Color = System.Drawing.Color.Blue;
-            series6.Legend = "Legend2";
-            series6.Name = "Series6";
-            series6.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
-            this.chart1.Series.Add(series1);
-            this.chart1.Series.Add(series2);
-            this.chart1.Series.Add(series3);
-            this.chart1.Series.Add(series4);
-            this.chart1.Series.Add(series5);
-            this.chart1.Series.Add(series6);
+            series13.ChartArea = "ChartArea1";
+            series13.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series13.Color = System.Drawing.Color.Red;
+            series13.Legend = "Legend1";
+            series13.LegendText = "Average";
+            series13.Name = "Series1";
+            series14.ChartArea = "ChartArea1";
+            series14.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series14.Color = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
+            series14.Legend = "Legend1";
+            series14.LegendText = "Deviation Sum";
+            series14.Name = "Series2";
+            series14.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
+            series15.ChartArea = "ChartArea1";
+            series15.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
+            series15.Color = System.Drawing.Color.Blue;
+            series15.Legend = "Legend1";
+            series15.Name = "Series3";
+            series15.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
+            series16.ChartArea = "ChartArea2";
+            series16.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series16.Color = System.Drawing.Color.Red;
+            series16.Legend = "Legend2";
+            series16.Name = "Series4";
+            series17.ChartArea = "ChartArea2";
+            series17.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series17.Color = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
+            series17.Legend = "Legend2";
+            series17.Name = "Series5";
+            series17.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
+            series18.ChartArea = "ChartArea2";
+            series18.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
+            series18.Color = System.Drawing.Color.Blue;
+            series18.Legend = "Legend2";
+            series18.Name = "Series6";
+            series18.YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Secondary;
+            this.chart1.Series.Add(series13);
+            this.chart1.Series.Add(series14);
+            this.chart1.Series.Add(series15);
+            this.chart1.Series.Add(series16);
+            this.chart1.Series.Add(series17);
+            this.chart1.Series.Add(series18);
             this.chart1.Size = new System.Drawing.Size(1024, 682);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
-            title1.BackColor = System.Drawing.Color.White;
-            title1.DockedToChartArea = "ChartArea1";
-            title1.IsDockedInsideChartArea = false;
-            title1.Name = "Row-wise (Vertical Division)";
-            title1.Text = "Row-wise (Vertical Division)";
-            title1.TextOrientation = System.Windows.Forms.DataVisualization.Charting.TextOrientation.Horizontal;
-            title2.DockedToChartArea = "ChartArea2";
-            title2.IsDockedInsideChartArea = false;
-            title2.Name = "Colume-wise (Horizontal Division)";
-            title2.Text = "Colume-wise (Horizontal Division)";
-            this.chart1.Titles.Add(title1);
-            this.chart1.Titles.Add(title2);
+            title5.BackColor = System.Drawing.Color.White;
+            title5.DockedToChartArea = "ChartArea1";
+            title5.IsDockedInsideChartArea = false;
+            title5.Name = "Row-wise (Vertical Division)";
+            title5.Text = "Row-wise (Vertical Division)";
+            title5.TextOrientation = System.Windows.Forms.DataVisualization.Charting.TextOrientation.Horizontal;
+            title6.DockedToChartArea = "ChartArea2";
+            title6.IsDockedInsideChartArea = false;
+            title6.Name = "Colume-wise (Horizontal Division)";
+            title6.Text = "Colume-wise (Horizontal Division)";
+            this.chart1.Titles.Add(title5);
+            this.chart1.Titles.Add(title6);
+            // 
+            // ckbLog
+            // 
+            this.ckbLog.AutoSize = true;
+            this.ckbLog.Location = new System.Drawing.Point(12, 53);
+            this.ckbLog.Name = "ckbLog";
+            this.ckbLog.Size = new System.Drawing.Size(123, 20);
+            this.ckbLog.TabIndex = 11;
+            this.ckbLog.Text = "Exp Transformed";
+            this.ckbLog.UseVisualStyleBackColor = true;
+            // 
+            // cbxSizeMode
+            // 
+            this.cbxSizeMode.FormattingEnabled = true;
+            this.cbxSizeMode.Location = new System.Drawing.Point(11, 94);
+            this.cbxSizeMode.Name = "cbxSizeMode";
+            this.cbxSizeMode.Size = new System.Drawing.Size(121, 24);
+            this.cbxSizeMode.TabIndex = 10;
+            this.cbxSizeMode.SelectedValueChanged += new System.EventHandler(this.cbxSizeMode_SelectedValueChanged);
+            // 
+            // lsbContents
+            // 
+            this.lsbContents.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lsbContents.FormattingEnabled = true;
+            this.lsbContents.ItemHeight = 16;
+            this.lsbContents.Location = new System.Drawing.Point(5, 569);
+            this.lsbContents.Name = "lsbContents";
+            this.lsbContents.Size = new System.Drawing.Size(132, 116);
+            this.lsbContents.TabIndex = 9;
             // 
             // btnShowImage
             // 
-            this.btnShowImage.Location = new System.Drawing.Point(15, 397);
+            this.btnShowImage.Location = new System.Drawing.Point(18, 435);
             this.btnShowImage.Name = "btnShowImage";
             this.btnShowImage.Size = new System.Drawing.Size(84, 24);
             this.btnShowImage.TabIndex = 8;
@@ -237,9 +272,9 @@
             // pictureBox2
             // 
             this.pictureBox2.BackColor = System.Drawing.Color.Red;
-            this.pictureBox2.Location = new System.Drawing.Point(5, 427);
+            this.pictureBox2.Location = new System.Drawing.Point(5, 462);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(135, 129);
+            this.pictureBox2.Size = new System.Drawing.Size(101, 94);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 7;
             this.pictureBox2.TabStop = false;
@@ -247,18 +282,18 @@
             // pictureBox1
             // 
             this.pictureBox1.BackColor = System.Drawing.Color.Red;
-            this.pictureBox1.Location = new System.Drawing.Point(2, 260);
+            this.pictureBox1.Location = new System.Drawing.Point(5, 344);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(138, 131);
+            this.pictureBox1.Size = new System.Drawing.Size(104, 85);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;
             // 
             // btnOCR
             // 
-            this.btnOCR.Location = new System.Drawing.Point(12, 208);
+            this.btnOCR.Location = new System.Drawing.Point(3, 304);
             this.btnOCR.Name = "btnOCR";
-            this.btnOCR.Size = new System.Drawing.Size(125, 46);
+            this.btnOCR.Size = new System.Drawing.Size(125, 34);
             this.btnOCR.TabIndex = 5;
             this.btnOCR.Text = "Get Answer";
             this.btnOCR.UseVisualStyleBackColor = true;
@@ -267,7 +302,7 @@
             // ckbBinary
             // 
             this.ckbBinary.AutoSize = true;
-            this.ckbBinary.Location = new System.Drawing.Point(12, 105);
+            this.ckbBinary.Location = new System.Drawing.Point(12, 160);
             this.ckbBinary.Name = "ckbBinary";
             this.ckbBinary.Size = new System.Drawing.Size(94, 20);
             this.ckbBinary.TabIndex = 4;
@@ -277,7 +312,7 @@
             // 
             // btnColLine
             // 
-            this.btnColLine.Location = new System.Drawing.Point(12, 162);
+            this.btnColLine.Location = new System.Drawing.Point(7, 248);
             this.btnColLine.Name = "btnColLine";
             this.btnColLine.Size = new System.Drawing.Size(125, 30);
             this.btnColLine.TabIndex = 3;
@@ -288,7 +323,7 @@
             // 
             // btnBinary
             // 
-            this.btnBinary.Location = new System.Drawing.Point(12, 131);
+            this.btnBinary.Location = new System.Drawing.Point(7, 227);
             this.btnBinary.Name = "btnBinary";
             this.btnBinary.Size = new System.Drawing.Size(125, 25);
             this.btnBinary.TabIndex = 2;
@@ -298,7 +333,7 @@
             // 
             // btnGray
             // 
-            this.btnGray.Location = new System.Drawing.Point(12, 53);
+            this.btnGray.Location = new System.Drawing.Point(7, 186);
             this.btnGray.Name = "btnGray";
             this.btnGray.Size = new System.Drawing.Size(125, 35);
             this.btnGray.TabIndex = 1;
@@ -338,18 +373,6 @@
             this.labMessage.Name = "labMessage";
             this.labMessage.Size = new System.Drawing.Size(1171, 17);
             this.labMessage.Spring = true;
-            // 
-            // lsbContents
-            // 
-            this.lsbContents.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lsbContents.FormattingEnabled = true;
-            this.lsbContents.ItemHeight = 16;
-            this.lsbContents.Location = new System.Drawing.Point(5, 569);
-            this.lsbContents.Name = "lsbContents";
-            this.lsbContents.Size = new System.Drawing.Size(132, 116);
-            this.lsbContents.TabIndex = 9;
             // 
             // MainForm
             // 
@@ -404,6 +427,8 @@
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.Button btnShowImage;
         private System.Windows.Forms.ListBox lsbContents;
+        private System.Windows.Forms.ComboBox cbxSizeMode;
+        private System.Windows.Forms.CheckBox ckbLog;
     }
 }
 

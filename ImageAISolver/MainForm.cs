@@ -31,6 +31,8 @@ namespace ImageAISolver
         {
             InitializeComponent();
 
+            cbxSizeMode.DataSource = Enum.GetValues(typeof(PictureBoxSizeMode));
+            cbxSizeMode.SelectedItem = pcbImage.SizeMode;
         }
 
         private void BtnOpen_Click(object sender, EventArgs e)
@@ -413,26 +415,45 @@ namespace ImageAISolver
             // Graphics grayG = Graphics.FromImage(grayImage);
             dataImage = new byte[colorImage.Height, colorImage.Width];
 
-            // 轉成灰階 或 黑白影像
-            for (int r = 0; r < grayImage.Height; r++)
-                for (int c = 0; c < grayImage.Width; c++)
-                {
-                    Color clr = colorImage.GetPixel(c, r);
-                    byte v = (byte)( (clr.R + clr.G + clr.B) / 3);
-                    if (ckbBinary.Checked)
+            // 轉成灰階 或 黑白影像            
+            if (ckbLog.Checked)
+            {
+                for (int r = 0; r < grayImage.Height; r++)
+                    for (int c = 0; c < grayImage.Width; c++)
                     {
-                        if (v <= 127) v = 0;
-                        else v = 255;
+                        Color clr = colorImage.GetPixel(c, r);
+                        //byte v = (byte)(Math.Round(45.98  * ( 1 + (clr.R + clr.G + clr.B)/ 3 )) );
+                        // (byte)(Math.Exp(clr.R / 45.99) - 1)
+                        // exp
+                        byte v = (byte)( 100 * Math.Exp( (clr.R + clr.G + clr.B) / 3/45.99  )- 1 );
+                        if (v < 20) v = 0;
+                        else if (v > 235) v = 255;
+                        dataImage[r, c] = v;
+                        grayImage.SetPixel(c, r, Color.FromArgb(v, v, v));
                     }
-                    //else
-                    //{
-                    //    if (v < 5) v = 0;
-                    //    else if (v > 240) v = 255;
-                    //}
-                    dataImage[r, c] =  v;
+            }
+            else
+            {
+                for (int r = 0; r < grayImage.Height; r++)
+                    for (int c = 0; c < grayImage.Width; c++)
+                    {
+                        Color clr = colorImage.GetPixel(c, r);
+                        byte v = (byte)((clr.R + clr.G + clr.B) / 3);
+                        if (ckbBinary.Checked)
+                        {
+                            if (v <= 127) v = 0;
+                            else v = 255;
+                        }
+                        else
+                        {
+                            if (v < 5) v = 0;
+                            else if (v > 240) v = 255;
+                        }
+                        dataImage[r, c] = v;
+                        grayImage.SetPixel(c, r, Color.FromArgb(v, v, v));
+                    }
+            }
 
-                    grayImage.SetPixel(c, r, Color.FromArgb(v, v, v));
-                }
             pcbImage.Image = grayImage;
 
             // 提取列統計資料
@@ -1947,6 +1968,12 @@ namespace ImageAISolver
 
             Cursor = Cursors.Default;
         }
+
+        private void cbxSizeMode_SelectedValueChanged(object sender, EventArgs e)
+        {
+            pcbImage.SizeMode = (PictureBoxSizeMode)cbxSizeMode.SelectedValue;
+        }
+
         void OCREachcell()
         {
             lsbContents.Items.Clear();
